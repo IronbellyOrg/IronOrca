@@ -14,11 +14,8 @@ import {
 import { registerTerminalPaneMountReadiness } from './helpers/terminal-pane-mount-readiness'
 
 async function openPaneTitleContextMenu(page: Page, title: string): Promise<void> {
-  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = (await page.evaluate(() =>
-    navigator.userAgent.includes('Windows')
-  ))
-    ? ['Control']
-    : []
+  // aidev02: plain right-click pastes on every platform, so Control+right-click opens the menu.
+  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = ['Control']
   const isMac = await page.evaluate(() => navigator.userAgent.includes('Mac'))
   const titleBar = page.locator('.pane-title-bar', { hasText: title }).first()
   await expect(titleBar).toBeVisible()

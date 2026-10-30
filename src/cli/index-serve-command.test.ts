@@ -41,6 +41,8 @@ vi.mock('child_process', async () => {
 })
 
 import { main } from './index'
+import { serveOrcaApp } from './runtime/launch'
+import { getServeOptions } from '../main/startup/serve-options'
 import { useWorktreeAwarenessEnvironment } from './index-test-harness'
 
 describe('orca cli worktree awareness', () => {
@@ -59,6 +61,73 @@ describe('orca cli worktree awareness', () => {
     listEnvironmentsMock,
     spawnMock
   })
+
+  it.each(['127.0.0.1', '::1'])(
+    'passes literal bind %s through the real serve handler',
+    async (bindHost) => {
+      serveOrcaAppMock.mockResolvedValue(0)
+      for (const args of [['--bind', bindHost], [`--bind=${bindHost}`]]) {
+        serveOrcaAppMock.mockClear()
+        await main(['serve', ...args, '--json'], '/tmp/repo')
+        expect(serveOrcaAppMock).toHaveBeenCalledWith(expect.objectContaining({ bindHost }))
+      }
+    }
+  )
+
+  it.each([
+    ['--bind'],
+    ['--bind='],
+    ['--bind', ''],
+    ['--bind', '--json'],
+    ['--bind=localhost'],
+    ['--bind=https://127.0.0.1'],
+    ['--bind=127.0.0.1:6768'],
+    ['--bind=[::1]'],
+    ['--bind=false'],
+    ['--bind= '],
+    ['--bnd=127.0.0.1']
+  ])('rejects unusable bind argv %j before spawning', async (...args) => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const priorExitCode = process.exitCode
+    try {
+      await main(['serve', ...args], '/tmp/repo')
+      expect(serveOrcaAppMock).not.toHaveBeenCalled()
+      expect(process.exitCode).toBe(1)
+    } finally {
+      process.exitCode = priorExitCode
+    }
+  })
+
+  it.each([undefined, '127.0.0.1', '::1'])(
+    'carries bind %s from main through CORE_HANDLERS and the real launcher into Electron argv',
+    async (bindHost) => {
+      vi.stubEnv('ORCA_APP_EXECUTABLE', '/opt/orca/orca-ide')
+      vi.stubEnv('ORCA_APP_EXECUTABLE_NEEDS_APP_ROOT', '')
+      // Why: the Coder template serves on the Electron runtime (runtime.mjs sets this), the one
+      // host the loopback-bind and browser mobile-pairing changes are wired into.
+      vi.stubEnv('ORCA_SERVE_RUNTIME', 'electron')
+      serveOrcaAppMock.mockImplementation(serveOrcaApp)
+      const priorExitCode = process.exitCode
+      try {
+        await main(['serve', ...(bindHost ? [`--bind=${bindHost}`] : []), '--json'], '/tmp/repo')
+        expect(spawnMock).toHaveBeenCalledTimes(1)
+        const childArgs = spawnMock.mock.calls[0][1] as string[]
+        expect(getServeOptions(['/opt/orca/orca-ide', ...childArgs]).bindHost).toBe(bindHost)
+        if (bindHost) {
+          const index = childArgs.indexOf('--serve-bind')
+          expect(index).toBeGreaterThanOrEqual(0)
+          expect(childArgs[index + 1]).toBe(bindHost)
+        } else {
+          expect(childArgs).not.toContain('--serve-bind')
+        }
+        expect(process.exitCode).toBe(0)
+      } finally {
+        vi.unstubAllEnvs()
+        process.exitCode = priorExitCode
+      }
+    }
+  )
 
   it('starts a foreground headless server through `serve`', async () => {
     serveOrcaAppMock.mockResolvedValue(17)

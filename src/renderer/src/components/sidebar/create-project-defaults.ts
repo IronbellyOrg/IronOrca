@@ -40,7 +40,7 @@ export function getDefaultCreateProjectParent(homeDir: string): string {
   if (!trimmedHomeDir) {
     return ''
   }
-  return joinCreateProjectPath(joinCreateProjectPath(trimmedHomeDir, 'orca'), 'projects')
+  return joinCreateProjectPath(trimmedHomeDir, 'workspaces')
 }
 
 export function getCreateProjectDefaultParentAutoFill({

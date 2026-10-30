@@ -10,9 +10,9 @@ import {
   getStoredSettings,
   settingsForActiveVisibilityOwner,
   syncRuntimeBackedSettings,
-  updateRuntimePRBotAuthorOverride,
   writeStoredSettings
 } from './web-preferences-store'
+import { updateRuntimePRBotAuthorOverride } from './web-pr-bot-author-override'
 import type { WebSettingsApi } from './web-preferences-store'
 import {
   requireActiveEnvironmentOrNull,

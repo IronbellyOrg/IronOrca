@@ -7,6 +7,12 @@ export type PairedMobileDevice = {
   lastSeenAt: number
 }
 
+// Keep pending browser grants revocable without treating issuance as a successful pair.
+// Desktop IPC already returns only connected devices; its count is unchanged.
+export function countPairedMobileDevices(devices: readonly PairedMobileDevice[]): number {
+  return devices.filter((device) => device.lastSeenAt > 0).length
+}
+
 type PairedMobileDevicesSnapshot = {
   devices: readonly PairedMobileDevice[]
   loaded: boolean
@@ -188,7 +194,7 @@ export function usePairedMobileDevices({
 
   return {
     ...currentSnapshot,
-    hasPairedDevice: currentSnapshot.devices.length > 0,
+    hasPairedDevice: countPairedMobileDevices(currentSnapshot.devices) > 0,
     refresh
   }
 }

@@ -10,6 +10,9 @@ export const GITHUB_CACHE_STORAGE_KEY = 'orca.web.githubCache.v1'
 
 export const KEYBINDINGS_STORAGE_KEY = 'orca.web.keybindings.v1'
 
+// Presence marks that the one-time floating-workspace defaults upgrade already ran in this browser.
+export const FLOATING_WORKSPACE_DEFAULTS_STORAGE_KEY = 'orca.web.floatingWorkspaceDefaults.v1'
+
 export function getBrowserPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Windows')) {
     return 'win32'

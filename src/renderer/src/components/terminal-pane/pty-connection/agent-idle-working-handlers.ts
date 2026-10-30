@@ -4,7 +4,7 @@ import { parseWorkspaceKey } from '../../../../../shared/workspace-scope'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/constants'
 import { isEphemeralSetupTerminalWorktreeId } from '../../../../../shared/ephemeral-setup-terminal-worktree-id'
 import { isLocalExecutionHost } from '../../../../../shared/execution-host'
-import { resolveTerminalWorktreeRoute } from '@/lib/terminal-worktree-route'
+import { resolveTerminalPaneSpawnRoute } from '@/lib/terminal-worktree-route'
 import { getConnectionId } from '@/lib/connection-context'
 import { getRemoteRuntimePtyEnvironmentId } from '@/runtime/runtime-terminal-stream'
 import { isWebTerminalSurfaceTabId } from '../../../../../shared/terminal-surface-id'
@@ -76,7 +76,8 @@ export function installAgentIdleWorkingHandlers(session: ConnectPanePtySession):
       ? (session.deps.restoredPtyIdByLeafId[session.deps.restoredLeafId] ?? null)
       : null
   // Synthetic floating/setup IDs lack catalog rows; shared routing scopes their host and only rejects genuinely unresolved workspaces (#9994).
-  session.terminalWorktreeRoute = resolveTerminalWorktreeRoute(
+  // aidev02: the web client has no local PTYs, so its floating terminal runs on the paired runtime.
+  session.terminalWorktreeRoute = resolveTerminalPaneSpawnRoute(
     session.state,
     session.deps.worktreeId
   )

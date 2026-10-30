@@ -19,8 +19,7 @@ import { getDefaultNotificationSettings } from './notification-settings-defaults
 import { getDefaultOnboardingState } from './onboarding-defaults'
 import {
   defaultTerminalFontFamily,
-  getDefaultPrimarySelectionMiddleClickPaste,
-  getDefaultTerminalRightClickToPaste
+  getDefaultPrimarySelectionMiddleClickPaste
 } from './terminal-platform-defaults'
 
 export { DEFAULT_STATUS_BAR_ITEMS } from './status-bar-defaults'
@@ -86,7 +85,7 @@ export { DEFAULT_REPO_BADGE_COLOR, REPO_COLORS } from './repo-badge-color'
 export function getDefaultWorkspaceDir(homeDir: string): string {
   const separator = homeDir.includes('\\') ? '\\' : '/'
   const trimmedHomeDir = homeDir.replace(/[\\/]+$/, '')
-  return [trimmedHomeDir, 'orca', 'workspaces'].join(separator)
+  return [trimmedHomeDir, 'workspaces', 'worktrees'].join(separator)
 }
 
 export function getDefaultSettings(homedir: string): GlobalSettings {
@@ -99,7 +98,7 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
       typeof process !== 'undefined' && process.platform === 'linux',
     terminalFontFamily: defaultTerminalFontFamily(),
     terminalInactivePaneOpacity: DEFAULT_TERMINAL_INACTIVE_PANE_OPACITY,
-    terminalRightClickToPaste: getDefaultTerminalRightClickToPaste(),
+    terminalRightClickToPaste: true,
     notifications: getDefaultNotificationSettings(),
 
     voice: getDefaultVoiceSettings()

@@ -1,3 +1,4 @@
+import { isIP } from 'node:net'
 import { levenshtein } from './edit-distance'
 
 export type ServeOptionValidationInput = {
@@ -6,9 +7,13 @@ export type ServeOptionValidationInput = {
   grantDesktopControl?: boolean
   recipeJson: boolean
   projectRoot: string | null | undefined
+  bindHost?: string
 }
 
 export function getServeOptionValidationError(options: ServeOptionValidationInput): string | null {
+  if (options.bindHost !== undefined && !isIP(options.bindHost)) {
+    return 'Invalid --bind value: expected a literal IPv4 or IPv6 address.'
+  }
   if (options.noPairing && options.mobilePairing) {
     return 'Use either --mobile-pairing or --no-pairing, not both.'
   }
@@ -28,6 +33,8 @@ export function getServeOptionValidationError(options: ServeOptionValidationInpu
 }
 
 const SERVE_SECURITY_FLAG_NAMES = [
+  '--bind',
+  '--serve-bind',
   '--no-pairing',
   '--serve-no-pairing',
   '--mobile-pairing',
@@ -41,6 +48,8 @@ const SERVE_SECURITY_FLAG_NAMES = [
 ] as const
 
 const SERVE_VALUE_FLAG_NAMES = new Set([
+  '--bind',
+  '--serve-bind',
   '--port',
   '--serve-port',
   '--pairing-address',
@@ -56,7 +65,7 @@ function flagName(token: string): string {
   return equalsIndex === -1 ? token : token.slice(0, equalsIndex)
 }
 
-/** Reject only near-miss pairing flags; Electron/Chromium switches stay open-ended. */
+/** Reject near-miss pairing/bind flags; Electron/Chromium switches stay open-ended. */
 export function getServeFlagTypoError(argv: readonly string[]): string | null {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index]!

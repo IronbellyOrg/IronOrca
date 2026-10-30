@@ -140,9 +140,9 @@ describe('web repos preload API', () => {
   })
 
   it.each([
-    ['/home/alice', '/home/alice/orca/projects'],
-    ['/', '/orca/projects'],
-    ['C:\\', 'C:\\orca\\projects']
+    ['/home/alice', '/home/alice/workspaces'],
+    ['/', '/workspaces'],
+    ['C:\\', 'C:\\workspaces']
   ])(
     'resolves the default create-project parent from runtime host home %s',
     async (resolvedPath, expectedParent) => {

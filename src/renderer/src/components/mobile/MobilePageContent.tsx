@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/i18n'
+import { countPairedMobileDevices } from './paired-mobile-devices'
 import type { MobileNetworkInterface } from '../settings/mobile-network-interface-selection'
 import {
   HeroFlow,
@@ -160,7 +161,11 @@ export function MobilePageContent({
               refreshingNetworkInterfaces={refreshingNetworkInterfaces}
               onBack={handleBack}
               onContinue={handleContinue}
-              onDone={devices.length > 0 ? () => showPairedDevices(devices.length) : undefined}
+              onDone={
+                devices.length > 0
+                  ? () => showPairedDevices(countPairedMobileDevices(devices))
+                  : undefined
+              }
             />
           )}
         </div>

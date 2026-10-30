@@ -136,12 +136,13 @@ describe('agent hooks CLI handler', () => {
     rmSync(userDataPath, { recursive: true, force: true })
   })
 
-  it('keeps new card style off when creating offline settings for a fresh profile', async () => {
+  // aidev02 defaults the new card style on (defaults.patch).
+  it('applies the new card style default when creating offline settings for a fresh profile', async () => {
     await runAgentHooksOff(userDataPath)
 
     const persisted = readDefaultProfileState(userDataPath)
 
-    expect(persisted.settings.experimentalNewWorktreeCardStyle).toBe(false)
+    expect(persisted.settings.experimentalNewWorktreeCardStyle).toBe(true)
     expect(persisted.settings.agentStatusHooksEnabled).toBe(false)
     expect(existsSync(join(userDataPath, 'orca-data.json'))).toBe(false)
     expect(existsSync(getOrcaProfileDataFile(DEFAULT_LOCAL_ORCA_PROFILE_ID, userDataPath))).toBe(

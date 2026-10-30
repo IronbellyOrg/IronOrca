@@ -8,6 +8,7 @@ import {
   type MobilePageStage as FlowStage
 } from './mobile-page-stage'
 import {
+  countPairedMobileDevices,
   getPairedMobileDevicesSnapshot,
   replacePairedMobileDevices,
   usePairedMobileDevices
@@ -82,10 +83,10 @@ export function useMobilePagePairedDevices({
             shouldShowPairedAfterDeviceRefresh({
               stage: stageRef.current,
               deviceCountAtPairStart: deviceCountAtPairStartRef.current,
-              nextDeviceCount: nextDevices.length
+              nextDeviceCount: countPairedMobileDevices(nextDevices)
             })
           ) {
-            showPairedDevices(nextDevices.length)
+            showPairedDevices(countPairedMobileDevices(nextDevices))
           }
         }
         return nextDevices
@@ -105,7 +106,7 @@ export function useMobilePagePairedDevices({
         return
       }
       if (initialDevices.length > 0) {
-        showPairedDevices(initialDevices.length)
+        showPairedDevices(countPairedMobileDevices(initialDevices))
       } else {
         showStage('intro')
       }
@@ -168,19 +169,19 @@ export function useMobilePagePairedDevices({
   useMobilePairingDevicePolling({
     deviceCountAtQr:
       (stage === 'flow' && stepIdx === 1) || stage === 'paired' ? deviceCountAtPairStart : null,
-    currentDeviceCount: devices.length,
+    currentDeviceCount: countPairedMobileDevices(devices),
     loadDevices: polledLoadDevices
   })
 
   const enterFlow = (): void => {
     setStepIdx(0)
-    setPairingDeviceBaseline(devices.length)
+    setPairingDeviceBaseline(countPairedMobileDevices(devices))
     showStage('flow')
   }
 
   const pairAnotherDevice = (): void => {
     setStepIdx(1)
-    setPairingDeviceBaseline(devices.length)
+    setPairingDeviceBaseline(countPairedMobileDevices(devices))
     showStage('flow')
   }
 
@@ -189,7 +190,7 @@ export function useMobilePagePairedDevices({
       setStepIdx(0)
     } else if (devices.length > 0) {
       // Back from pairing another device returns to the existing paired summary.
-      showPairedDevices(devices.length)
+      showPairedDevices(countPairedMobileDevices(devices))
     } else {
       showStage('intro')
     }

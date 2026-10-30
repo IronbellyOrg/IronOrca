@@ -10,7 +10,8 @@ const mocks = vi.hoisted(() => ({
   listDevices: vi.fn(),
   revokeDevice: vi.fn(),
   toastError: vi.fn(),
-  toastSuccess: vi.fn()
+  toastSuccess: vi.fn(),
+  pollDevices: vi.fn()
 }))
 
 vi.mock('sonner', () => ({
@@ -22,7 +23,7 @@ vi.mock('sonner', () => ({
 
 // Disable polling to isolate the listDevices calls made directly by this hook.
 vi.mock('../settings/mobile-pairing-device-polling', () => ({
-  useMobilePairingDevicePolling: (): void => {}
+  useMobilePairingDevicePolling: mocks.pollDevices
 }))
 
 import { useMobilePagePairedDevices } from './use-mobile-page-paired-devices'
@@ -88,6 +89,45 @@ describe('useMobilePagePairedDevices', () => {
   afterEach(async () => {
     await unmountProbes()
     document.body.innerHTML = ''
+  })
+
+  it('keeps pending grants manageable without completing pairing or stopping its poll', async () => {
+    const pending = { ...device('pending'), lastSeenAt: 0 }
+    mocks.listDevices.mockResolvedValue({ devices: [pending] })
+    await renderProbe()
+    expect(latest?.stage).toBe('paired') // Management is reachable even before first connection.
+    expect(latest?.devices).toEqual([pending])
+    await act(async () => {
+      latest?.pairAnotherDevice()
+    })
+    const poll = () =>
+      mocks.pollDevices.mock.lastCall![0] as {
+        deviceCountAtQr: number
+        currentDeviceCount: number
+        loadDevices: () => Promise<void>
+      }
+    expect(poll().deviceCountAtQr).toBe(0)
+    mocks.listDevices.mockResolvedValue({
+      devices: [pending, { ...device('new-code'), lastSeenAt: 0 }]
+    })
+    await act(async () => {
+      await poll().loadDevices()
+    })
+    expect(latest?.stage).toBe('flow')
+    expect(poll().currentDeviceCount).toBe(0)
+    mocks.listDevices.mockResolvedValue({ devices: [pending, device('new-code')] })
+    await act(async () => {
+      await poll().loadDevices()
+    })
+    expect(latest?.stage).toBe('paired')
+    expect(poll().currentDeviceCount).toBe(1)
+    mocks.revokeDevice.mockResolvedValue({ revoked: true })
+    mocks.listDevices.mockResolvedValue({ devices: [device('new-code')] })
+    await act(async () => {
+      await latest?.revokeDevice('pending')
+    })
+    expect(mocks.revokeDevice).toHaveBeenCalledWith({ deviceId: 'pending' })
+    expect(latest?.devices).toEqual([device('new-code')])
   })
 
   it('resolves to the paired stage when a device is already paired', async () => {

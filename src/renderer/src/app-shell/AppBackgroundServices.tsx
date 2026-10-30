@@ -3,6 +3,7 @@ import { lazyWithRetry as lazy } from '@/lib/lazy-with-retry'
 import { AgentHibernationGate } from '../components/AgentHibernationGate'
 import { AiVaultTabTitleSyncGate } from '../components/AiVaultTabTitleSyncGate'
 import RetainedAgentsSyncGate from '../components/dashboard/RetainedAgentsSyncGate'
+import EditorAutosaveController from '../components/editor/EditorAutosaveController'
 import { WorkspacePortScanner } from '../components/ports/WorkspacePortScanner'
 import { SavedHostScopeWidenGate } from '../components/sidebar/SavedHostScopeWidenGate'
 import { MacosTccPromptNoticeHost } from '../hooks/MacosTccPromptNoticeHost'
@@ -22,6 +23,10 @@ export function AppBackgroundServices(): React.JSX.Element {
 
   return (
     <>
+      {/* Why: the one save/quit-coordination controller lives at the always-mounted root. Inside
+          the terminal workbench it only existed once a worktree was active, so the floating
+          workspace's editor (no project open) had no save handler: "Failed to save file". */}
+      <EditorAutosaveController />
       <WorkspacePortScanner enabled={workspaceSessionReady} />
       <ActiveWorkspaceSyncGate />
       {/* Keep permission notices available across app surfaces. */}

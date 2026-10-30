@@ -10,9 +10,12 @@ import { normalizePluginOwnedSettings } from '../../../shared/plugins/capabiliti
 import { normalizeTerminalDefaultShell } from '../../../shared/terminal-default-shell'
 import { projectSourceControlAiToLegacyCommitMessageAi } from '../../../shared/source-control-ai'
 import { normalizeNativeChatShellEnvironmentVariables } from '../../../shared/native-chat/native-chat-shell-environment'
+import { normalizeNativeChatProviderChoices } from '../../../shared/native-chat/native-chat-providers'
+import { AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS } from '../../../shared/default-global-settings'
 import { publishedLegacyChatPermissionMode } from '../../../shared/agent-chat-permission-mode'
 import {
   expandWorkspaceDirHome,
+  savedChatUiWithChatDefaultView,
   savedChatUiWithTerminalDefaultView,
   stripRetiredGlobalSettings
 } from '../applying-settings/terminal-settings-migrations'
@@ -69,9 +72,24 @@ export function normalizeLoadedGlobalSettings(
     // Legacy stored booleans cannot distinguish opt-in from the old default; retain explicit true.
     ...expandWorkspaceDirHome(stripRetiredGlobalSettings(parsed.settings)),
     // Preserve terminal-first new tabs when retiring the old default-view switch.
+    // aidev02: keep their Chat UI on too, by opting every structured agent out of chat-first new
+    // tabs (an explicit per-agent choice already saved still wins).
     ...(savedChatUiWithTerminalDefaultView(parsed.settings)
-      ? { experimentalNativeChat: false }
-      : {}),
+      ? {
+          nativeChatProviders: {
+            ...AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS,
+            ...normalizeNativeChatProviderChoices(parsed.settings?.nativeChatProviders)
+          }
+        }
+      : savedChatUiWithChatDefaultView(parsed.settings)
+        ? {
+            // aidev02: a user who chose chat-first new tabs keeps it: no terminal-first defaults,
+            // so an unchosen agent opens in chat as upstream does.
+            nativeChatProviders: normalizeNativeChatProviderChoices(
+              parsed.settings?.nativeChatProviders
+            )
+          }
+        : {}),
     nativeChatAppearance: normalizeNativeChatAppearanceSettings(
       parsed.settings?.nativeChatAppearance
     ),

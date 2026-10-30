@@ -69,6 +69,8 @@ test.describe('structured chat tabs', () => {
     await page.evaluate(async (command) => {
       await window.__store?.getState().updateSettings({
         experimentalNativeChat: true,
+        // aidev02: agents open in the terminal by default; chat is turned on per agent.
+        nativeChatProviders: { claude: true },
         defaultTuiAgent: 'claude',
         agentCmdOverrides: { claude: command }
       })

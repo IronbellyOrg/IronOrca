@@ -24,7 +24,8 @@ afterEach(() => {
 })
 it('reserves the switch footprint through unknown and failed reads, then shows managed/external installed and saved false', () => {
   useAppStore.setState({ localDetectedAgentIdsByContext: { host: [] } })
-  const settings = getDefaultSettings('/tmp')
+  // Upstream's baseline: no saved per-agent choices (aidev02 saves terminal-first ones).
+  const settings = { ...getDefaultSettings('/tmp'), nativeChatProviders: {} }
   const surface = () => <NativeChatProvidersSetting settings={settings} updateSettings={vi.fn()} />
   const view = render(surface())
   expect(view.queryByRole('switch')).toBeNull()

@@ -454,10 +454,11 @@ describe('Store', () => {
     expect(updated.disabledTuiAgents).toEqual(['gemini', 'opencode'])
   })
 
-  it('enables Claude Agent Teams by default for fresh installs', async () => {
+  it('enables Claude Agent Teams and disables Auggie by default for fresh installs', async () => {
     const store = await createStore()
 
-    expect(store.getSettings().disabledTuiAgents).toEqual([])
+    expect(store.getSettings().disabledTuiAgents).toEqual(['aug'])
+    expect(store.getSettings().tabAutoGenerateTitle).toBe(true)
     expect(store.getSettings().claudeAgentTeamsDefaultDisabledMigrated).toBe(true)
   })
 
@@ -646,7 +647,7 @@ describe('Store', () => {
 
   it('updateSettings toggles editorAutoSave', async () => {
     const store = await createStore()
-    expect(store.getSettings().editorAutoSave).toBe(false)
+    expect(store.getSettings().editorAutoSave).toBe(true)
 
     store.updateSettings({ editorAutoSave: true })
     expect(store.getSettings().editorAutoSave).toBe(true)

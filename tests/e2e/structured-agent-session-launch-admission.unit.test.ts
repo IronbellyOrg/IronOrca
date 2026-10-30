@@ -363,6 +363,8 @@ describe('a structured chat launch on a paired server', () => {
         ...defaults,
         settings: {
           ...defaults.settings,
+          // Upstream's baseline: no disabled agents (aidev02 disables Auggie for new installs).
+          disabledTuiAgents: [],
           agentPermissionDefault: choice,
           agentPermissionOverrides: {},
           agentYoloDefaultsMigrated: true,

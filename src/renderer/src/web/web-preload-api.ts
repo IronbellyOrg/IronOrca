@@ -44,7 +44,7 @@ import { createWebJiraApi } from './preload-api/web-jira-api'
 import { callRuntimeResult } from './preload-api/web-runtime-calls'
 import { createWebRuntimeApi } from './preload-api/web-runtime-api'
 import { createRuntimeEnvironmentsApi } from './preload-api/web-runtime-environments-api'
-import { webRuntimeState } from './preload-api/web-runtime-session'
+import { requireActiveEnvironmentOrNull, webRuntimeState } from './preload-api/web-runtime-session'
 import { createWebSettingsApi } from './preload-api/web-settings-api'
 import { createShellApi } from './preload-api/web-shell-api'
 import { createWebStarNagApi } from './preload-api/web-star-nag-api'
@@ -56,10 +56,14 @@ import { createWebWorkspacePortsApi } from './preload-api/web-workspace-ports-ap
 import { createWebLinkPreviewApi } from './preload-api/web-link-preview-api'
 import { createWebWorkspaceSessionApi } from './preload-api/web-workspace-session-api'
 import { createWorktreesApi } from './preload-api/web-worktrees-api'
+import { setWebFloatingRuntimeOwnerResolver } from '../lib/terminal-worktree-route'
 import { readStoredWebRuntimeEnvironment } from './web-runtime-environment'
 
 export function installWebPreloadApi(): void {
   webRuntimeState.activeEnvironment = readStoredWebRuntimeEnvironment()
+  // Why: the floating terminal has no worktree row to derive an owner from; in the web client it
+  // always runs on the paired runtime (see setWebFloatingRuntimeOwnerResolver).
+  setWebFloatingRuntimeOwnerResolver(() => requireActiveEnvironmentOrNull()?.id ?? null)
   const webWindow = window as unknown as { __ORCA_WEB_CLIENT__?: boolean }
   webWindow.__ORCA_WEB_CLIENT__ = true
   window.api = withFallback(createWebPreloadApi(), []) as PreloadApi
