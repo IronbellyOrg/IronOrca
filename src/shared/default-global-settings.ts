@@ -14,7 +14,23 @@ import {
   DEFAULT_LEFT_SIDEBAR_TINT_OPACITY
 } from './left-sidebar-appearance'
 import { DEFAULT_SOURCE_CONTROL_GROUP_ORDER } from './source-control-group-order'
-import { DESKTOP_TERMINAL_SCROLLBACK_ROWS_DEFAULT } from './terminal-scrollback-policy'
+
+// aidev02: with Chat UI on, upstream opens any unchosen agent that has a structured session in
+// chat. Every such agent here keeps opening new tabs in the terminal, the behavior the retired
+// openAgentTabsInChatByDefault=false gave (upstream #22933). Guarded by
+// src/main/runtime/structured-agent-native-chat-defaults.test.ts.
+export const AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS: NonNullable<
+  GlobalSettings['nativeChatProviders']
+> = {
+  claude: false,
+  codex: false,
+  pi: false,
+  grok: false,
+  opencode: false,
+  opencode2: false,
+  omp: false,
+  antigravity: false
+}
 
 export function buildDefaultSettings(args: {
   workspaceDir: string
@@ -52,9 +68,9 @@ export function buildDefaultSettings(args: {
     uiLanguagePortugueseMigrationApplied: true,
     appIcon: DEFAULT_APP_ICON_ID,
     appFontFamily: args.appFontFamily,
-    editorAutoSave: false,
+    editorAutoSave: true,
     editorAutoSaveDelayMs: args.editorAutoSaveDelayMs,
-    editorMinimapEnabled: false,
+    editorMinimapEnabled: true,
     // Why empty: the editor keeps following the terminal font unless the user opts in.
     editorFontFamily: '',
     editorWordWrap: true,
@@ -112,14 +128,14 @@ export function buildDefaultSettings(args: {
     minimizeToTrayOnClose: false,
     // Why: default-on everywhere so it round-trips across platforms; only darwin acts on it.
     showMenuBarIcon: true,
-    terminalClipboardOnSelect: false,
+    terminalClipboardOnSelect: true,
     // Trim only the shared leading-space gutter, preserving relative indentation.
     terminalCopyTrimsGutter: true,
     // Default OSC52 supports Zellij/tmux/nvim with queries disabled and capped writes; the stamp migrates persisted false once in both Electron and web localStorage stores.
     terminalAllowOsc52Clipboard: true,
     terminalAllowOsc52ClipboardDefaultedOnForAllUsers: true,
     claudeAgentTeamsMode: 'off',
-    terminalScrollbackRows: DESKTOP_TERMINAL_SCROLLBACK_ROWS_DEFAULT,
+    terminalScrollbackRows: 25_000,
     httpProxyUrl: '',
     httpProxyBypassRules: '',
     nodeDistMirrorUrl: '',
@@ -132,7 +148,10 @@ export function buildDefaultSettings(args: {
     terminalLinkActionPopoverEnabled: true,
     terminalLinkClickBehavior: 'actions',
     terminalUrlMiddleClickBehavior: 'open',
-    experimentalNativeChat: false,
+    // aidev02: Chat UI stays on while new agent tabs keep opening in the terminal, the
+    // combination the retired openAgentTabsInChatByDefault=false gave (upstream #22933).
+    experimentalNativeChat: true,
+    nativeChatProviders: { ...AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS },
     experimentalBrowserExtensions: false,
     nativeChatResumeWorkOnRestart: false,
     nativeChatQueueFollowUps: true,
@@ -175,7 +194,7 @@ export function buildDefaultSettings(args: {
     floatingTerminalCwdMigratedToAppWorkspace: true,
     floatingTerminalTriggerLocation: 'floating-button',
     notifications: args.notifications,
-    diffDefaultView: 'inline',
+    diffDefaultView: 'side-by-side',
     diffWordWrap: false,
     diffShowWhitespace: false,
     diffCollapseUnchangedRegions: false,
@@ -238,7 +257,7 @@ export function buildDefaultSettings(args: {
     agentWorkspaceTrustEnabled: true,
     codexTerminalServerIsolation: true,
     codexSharedServerWarning: true,
-    tabAutoGenerateTitle: false,
+    tabAutoGenerateTitle: true,
     confirmClosePinnedTab: true,
     editorPreviewTabsEnabled: true,
     keepComputerAwakeWhileAgentsRun: false,
@@ -261,10 +280,11 @@ export function buildDefaultSettings(args: {
     experimentalPet: false,
     experimentalActivity: false,
     experimentalActivityDefaultedOffForAllUsers: true,
-    experimentalTerminalAttention: false,
+    experimentalTerminalAttention: true,
     experimentalAgentHibernation: false,
     agentHibernationIdleMs: 30 * 60 * 1000,
-    experimentalNewWorktreeCardStyle: false,
+    experimentalNewWorktreeCardStyle: true,
+    experimentalAgentDashboardPopout: true,
     experimentalEphemeralVms: false,
     experimentalConnectors: false,
     experimentalWslHosts: false,

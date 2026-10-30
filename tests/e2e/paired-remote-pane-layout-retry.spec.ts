@@ -99,7 +99,8 @@ async function setPaneTitle(page: Page, title: string): Promise<void> {
     .click({
       button: isMac ? 'left' : 'right',
       position: { x: 40, y: 40 },
-      modifiers: isMac ? ['Control'] : []
+      // aidev02: plain right-click pastes on every platform, so Control+right-click opens the menu.
+      modifiers: ['Control']
     })
   await page.getByText('Set Title…', { exact: true }).click()
   const titleInput = page.getByRole('textbox', { name: 'Pane title' })

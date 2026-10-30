@@ -10,6 +10,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { getDefaultPersistedState } from '../../../shared/constants'
+import { AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS } from '../../../shared/default-global-settings'
 import type {
   NativeChatUpgradeTipAudience,
   NativeChatUpgradeTipVariant
@@ -114,16 +115,22 @@ describe('native chat upgrade tip audience', () => {
     }
   )
 
-  it('turns Chat UI off for a profile whose new tabs opened in the terminal, once', async () => {
+  // aidev02: every AIDev02 profile saved exactly this (Chat UI on, new tabs in the terminal). It
+  // keeps Chat UI on and its new agent tabs keep opening in the terminal, across restarts.
+  it('keeps Chat UI on with terminal-first agents for a profile whose new tabs opened in the terminal', async () => {
     writeDataFile({ settings: preUpgradeSettings(true, false) })
     const store = createStore()
-    expect(store.getSettings().experimentalNativeChat).toBe(false)
+    expect(store.getSettings().experimentalNativeChat).toBe(true)
+    expect(store.getSettings().nativeChatProviders).toEqual(
+      AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS
+    )
     store.flush()
-    expect(readDataFile()).toHaveProperty('settings.experimentalNativeChat', false)
-    // Once the saved Default view is removed, a later explicit Chat UI choice must persist.
-    store.updateSettings({ experimentalNativeChat: true })
-    store.flush()
-    expect((await reopen()).getSettings().experimentalNativeChat).toBe(true)
+    expect(readDataFile()).toHaveProperty('settings.experimentalNativeChat', true)
+    const reopened = await reopen()
+    expect(reopened.getSettings().experimentalNativeChat).toBe(true)
+    expect(reopened.getSettings().nativeChatProviders).toEqual(
+      AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS
+    )
   })
 
   it('keeps Chat UI on for a profile whose new tabs opened in chat', () => {

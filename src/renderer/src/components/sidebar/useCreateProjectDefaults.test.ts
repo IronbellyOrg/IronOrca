@@ -147,8 +147,8 @@ describe('useCreateProjectDefaults', () => {
     await flushAsync()
 
     expect(mocks.browseRuntimeServerDirectory).toHaveBeenCalledWith('env-1', '~')
-    expect(setCreateParent).toHaveBeenCalledWith('/home/alice/orca/projects')
-    expect(mocks.stateValues[DEFAULT_PARENT_STATE]).toBe('/home/alice/orca/projects')
+    expect(setCreateParent).toHaveBeenCalledWith('/home/alice/workspaces')
+    expect(mocks.stateValues[DEFAULT_PARENT_STATE]).toBe('/home/alice/workspaces')
     expect(mocks.stateValues[RUNTIME_PARENT_STATUS_STATE]).toBe('idle')
     expect(mocks.callRuntimeRpc).toHaveBeenCalledWith(
       { kind: 'environment', environmentId: 'env-1' },
@@ -185,8 +185,8 @@ describe('useCreateProjectDefaults', () => {
     await flushAsync()
 
     expect(mocks.browseRuntimeServerDirectory).toHaveBeenCalledWith('env-1', '~')
-    expect(resolvedRuntime.setCreateParent).toHaveBeenCalledWith('/home/alice/orca/projects')
-    expect(mocks.stateValues[DEFAULT_PARENT_STATE]).toBe('/home/alice/orca/projects')
+    expect(resolvedRuntime.setCreateParent).toHaveBeenCalledWith('/home/alice/workspaces')
+    expect(mocks.stateValues[DEFAULT_PARENT_STATE]).toBe('/home/alice/workspaces')
     expect(resolvedRuntime.result.createParentDefaultPending).toBe(false)
   })
 

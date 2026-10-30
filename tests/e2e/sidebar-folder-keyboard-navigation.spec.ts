@@ -10,6 +10,12 @@ test('cycles visible folder workspaces with shortcuts and focused list arrows', 
   registerPostElectronShutdownCleanup
 }, testInfo) => {
   await waitForSessionReady(orcaPage)
+  // aidev02: the new card style is on by default; its rows reveal to within half a pixel of the
+  // viewport edge, short of the exact full-row visibility this classic-card spec asserts.
+  await orcaPage.evaluate(async () => {
+    const settings = await window.api.settings.set({ experimentalNewWorktreeCardStyle: false })
+    window.__store?.setState({ settings })
+  })
   await orcaPage.emulateMedia({ reducedMotion: 'reduce' })
   const folderPath = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'orca-folder-navigation-')))
   registerPostElectronShutdownCleanup(async () =>

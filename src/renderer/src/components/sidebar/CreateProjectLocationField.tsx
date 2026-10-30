@@ -94,7 +94,7 @@ export function CreateProjectLocationField({
             onChange={(e) => onParentChange(e.target.value)}
             placeholder={translate(
               'auto.components.sidebar.CreateProjectLocationField.2a20a603a3',
-              '/home/user/projects'
+              '/home/coder/workspaces'
             )}
             className="h-11 min-w-0 flex-1 text-sm font-mono"
             disabled={isCreating}

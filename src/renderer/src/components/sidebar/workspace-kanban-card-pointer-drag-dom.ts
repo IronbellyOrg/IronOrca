@@ -168,13 +168,25 @@ function getStatusDropTargetRects(board: HTMLElement): WorkspaceKanbanStatusDrop
   })
 }
 
+/** The topmost element of `board` at a point, looking through overlays portaled outside it. */
+function boardElementAtPoint(board: HTMLElement, x: number, y: number): Element | null {
+  const target = document.elementFromPoint(x, y)
+  if (target instanceof Element && board.contains(target)) {
+    return target
+  }
+  // aidev02: the workspace hover card (360px wide since v1.4.237) is portaled outside the board
+  // and, with the new card style, floats over the next lane mid-drag; the lane beneath it is the
+  // drop target, not "nowhere".
+  return document.elementsFromPoint?.(x, y).find((element) => board.contains(element)) ?? null
+}
+
 export function getDropTarget(
   board: HTMLElement,
   x: number,
   y: number
 ): { status: WorkspaceStatus | null; isPinDrop: boolean } {
-  const target = document.elementFromPoint(x, y)
-  if (!(target instanceof Element) || !board.contains(target)) {
+  const target = boardElementAtPoint(board, x, y)
+  if (!target) {
     return { status: null, isPinDrop: false }
   }
 

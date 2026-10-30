@@ -2,6 +2,7 @@ import { newChatPermissionModeForSettings } from '../../../shared/agent-chat-per
 import { homedir } from 'node:os'
 import { describe, expect, it, vi } from 'vitest'
 import { getDefaultPersistedState } from '../../../shared/constants'
+import { AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS } from '../../../shared/default-global-settings'
 import { normalizeLoadedGlobalSettings } from './normalize-loaded-global-settings'
 import { prepareLoadedTerminalSettings } from './prepare-loaded-terminal-settings'
 import { prepareLoadedProfileSettings } from './prepare-loaded-profile-settings'
@@ -89,15 +90,37 @@ describe('retired chat default selectors', () => {
     expect(normalized).not.toHaveProperty('openAgentTabsInChatByDefault')
   })
 
-  it('turns Chat UI off when new tabs opened in the terminal, dropping both older keys', () => {
+  // aidev02: Chat UI stays on and every structured agent keeps opening in the terminal.
+  it('keeps Chat UI on with terminal-first agents when new tabs opened in the terminal, dropping both older keys', () => {
     const normalized = normalizeLegacyProfile({
       experimentalNativeChat: true,
       experimentalStructuredNativeChat: false,
       openAgentTabsInChatByDefault: false
     })
-    expect(normalized.experimentalNativeChat).toBe(false)
+    expect(normalized.experimentalNativeChat).toBe(true)
+    expect(normalized.nativeChatProviders).toEqual(AIDEV02_TERMINAL_FIRST_NATIVE_CHAT_PROVIDERS)
     expect(normalized).not.toHaveProperty('experimentalStructuredNativeChat')
     expect(normalized).not.toHaveProperty('openAgentTabsInChatByDefault')
+  })
+
+  // aidev02: a 1.4.203 user who turned on chat-first new tabs keeps them after the upgrade.
+  it('keeps chat-first new tabs for a profile that chose them, with its explicit choices', () => {
+    // 1.4.203 never saved nativeChatProviders; the helper otherwise starts from today's defaults.
+    const chatFirst = normalizeLegacyProfile({
+      experimentalNativeChat: true,
+      openAgentTabsInChatByDefault: true,
+      nativeChatProviders: undefined
+    })
+    expect(chatFirst.experimentalNativeChat).toBe(true)
+    expect(chatFirst.nativeChatProviders).toEqual({})
+    expect(chatFirst).not.toHaveProperty('openAgentTabsInChatByDefault')
+
+    const withChoice = normalizeLegacyProfile({
+      experimentalNativeChat: true,
+      openAgentTabsInChatByDefault: true,
+      nativeChatProviders: { codex: false }
+    })
+    expect(withChoice.nativeChatProviders).toEqual({ codex: false })
   })
 })
 

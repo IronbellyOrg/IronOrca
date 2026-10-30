@@ -135,7 +135,8 @@ it.each(['wt', 'folder:f1'])(
 
 it('filters chat and CLI rows with host preferences while keeping the desktop chat presentation', async () => {
   useAppStore.setState((state) => ({
-    settings: { ...state.settings!, experimentalNativeChat: true }
+    // Upstream's baseline: no saved per-agent choices (aidev02 saves terminal-first ones).
+    settings: { ...state.settings!, experimentalNativeChat: true, nativeChatProviders: {} }
   }))
   const hook = renderHook(() =>
     useNewTabAgentMenuRows('folder:f1', true, { kind: 'runtime', environmentId: 'alpha' })

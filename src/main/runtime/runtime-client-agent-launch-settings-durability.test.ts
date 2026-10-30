@@ -276,7 +276,8 @@ describe('durable execution-host launch settings', () => {
     try {
       await expect(
         controller.mutateAgentLaunch({ type: 'availability', agent: 'claude', enabled: false })
-      ).resolves.toMatchObject({ disabledTuiAgents: ['claude'] })
+        // aidev02 disables Auggie ('aug') for new installs (defaults.patch).
+      ).resolves.toMatchObject({ disabledTuiAgents: ['aug', 'claude'] })
       await controller.mutateAgentLaunch({
         type: 'arguments',
         agent: 'codex',

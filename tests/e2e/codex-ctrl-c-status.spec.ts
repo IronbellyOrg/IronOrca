@@ -30,6 +30,12 @@ for (const navigation of ['Control+c', 'F3 search', '/permissions'] as const) {
     await waitForActiveTerminalManager(orcaPage, 30_000)
     const endpoint = await readHookEndpoint(electronApp)
     const descriptor = await waitForActivePaneHookDescriptor(orcaPage)
+    // aidev02: generated tab titles are on by default and would repeat the prompt in the tab
+    // strip; this spec covers agent status, not titles.
+    await orcaPage.evaluate(async () => {
+      const settings = await window.api.settings.set({ tabAutoGenerateTitle: false })
+      window.__store?.setState({ settings })
+    })
     await orcaPage.evaluate(() => {
       const state = window.__store?.getState()
       state?.setAgentActivityDisplayMode('full')
