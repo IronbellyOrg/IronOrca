@@ -45,6 +45,8 @@ export class RuntimeRpcState {
   protected readonly requirePinnedWsPort: boolean
   protected readonly exposeNetworkByDefault: boolean
   protected readonly pinnedBindHost: string | null
+  protected readonly browserMobilePairingAddress: string | undefined
+  protected readonly nativeMobilePairingFile: string | undefined
   protected readonly webClientRoot: string | undefined
   // Track actual WS bind host for pairing exposure transitions (STA-2370).
   protected wsBoundHost: string | null = null
@@ -115,6 +117,8 @@ export class RuntimeRpcState {
     requirePinnedWsPort = false,
     exposeNetworkByDefault = false,
     pinnedBindHost,
+    browserMobilePairingAddress,
+    nativeMobilePairingFile,
     webClientRoot,
     keepaliveIntervalMs = KEEPALIVE_INTERVAL_MS,
     longPollCap = LONG_POLL_CAP,
@@ -132,6 +136,8 @@ export class RuntimeRpcState {
     this.requirePinnedWsPort = requirePinnedWsPort
     this.exposeNetworkByDefault = exposeNetworkByDefault
     this.pinnedBindHost = pinnedBindHost ?? null
+    this.browserMobilePairingAddress = browserMobilePairingAddress
+    this.nativeMobilePairingFile = nativeMobilePairingFile
     this.webClientRoot = webClientRoot
     this.keepaliveIntervalMs = keepaliveIntervalMs
     this.longPollCap = longPollCap

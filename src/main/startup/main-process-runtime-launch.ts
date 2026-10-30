@@ -116,6 +116,13 @@ export function installRuntimeRpc(
         }
       : {}),
     ...(serveOptions?.bindHost !== undefined ? { pinnedBindHost: serveOptions.bindHost } : {}),
+    browserMobilePairingAddress: serveOptions?.noPairing
+      ? undefined
+      : (serveOptions?.pairingAddress ?? undefined),
+    nativeMobilePairingFile:
+      serveOptions && !serveOptions.noPairing
+        ? process.env.AIDEV_ORCA_NATIVE_ENDPOINT_FILE
+        : undefined,
     webClientRoot: getBundledWebClientRoot()
   })
   state.runtimeRpc = runtimeRpc

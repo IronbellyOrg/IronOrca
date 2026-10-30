@@ -25,9 +25,11 @@ export function HeroPaired({
         </span>
       </div>
       <h1 className="mp-h1">
-        {devices.length === 1
-          ? translate('auto.components.mobile.MobileHero.051978a785', 'Your phone is paired.')
-          : translate('auto.components.mobile.MobileHero.d0b52871ce', 'Your phones are paired.')}
+        {devices.some((device) => device.lastSeenAt === 0)
+          ? translate('auto.components.mobile.MobileHero.managePairings', 'Manage mobile pairings.')
+          : devices.length === 1
+            ? translate('auto.components.mobile.MobileHero.051978a785', 'Your phone is paired.')
+            : translate('auto.components.mobile.MobileHero.d0b52871ce', 'Your phones are paired.')}
       </h1>
       <p className="mp-lead-sm">
         {translate(
@@ -46,7 +48,12 @@ export function HeroPaired({
               <div className="mp-paired-main">
                 <div className="mp-paired-name">{device.name}</div>
                 <div className="mp-paired-meta">
-                  {translate('auto.components.mobile.MobileHero.94829abdb1', 'Paired')}{' '}
+                  {device.lastSeenAt === 0
+                    ? translate(
+                        'auto.components.mobile.MobileHero.pending',
+                        'Pending — not connected'
+                      )
+                    : translate('auto.components.mobile.MobileHero.94829abdb1', 'Paired')}{' '}
                   {new Date(device.pairedAt).toLocaleDateString(getIntlLocale())}
                 </div>
               </div>
