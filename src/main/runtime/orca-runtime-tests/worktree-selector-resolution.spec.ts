@@ -1,5 +1,7 @@
 import { SshHostNotServedError } from '../../providers/ssh-host-not-served-error'
 import { describe, expect, it, vi } from 'vitest'
+import { randomUUID } from 'node:crypto'
+import { readFile, rm } from 'node:fs/promises'
 import {
   FLOATING_TERMINAL_WORKTREE_ID,
   MOCK_GIT_WORKTREES,
@@ -242,6 +244,37 @@ describe('OrcaRuntimeService', () => {
     await expect(
       runtime.showManagedWorktree(`id:${FLOATING_TERMINAL_WORKTREE_ID}`)
     ).rejects.toThrow('selector_not_found')
+  })
+
+  it('writes floating notes through the host notes-folder selector, leaving the sentinel to upstream (#325)', async () => {
+    const runtime = new OrcaRuntimeService(store)
+    // Test userData is '/tmp' (setup.spec electron mock), so the notes folder is /tmp/floating-workspace.
+    const notes = join('/tmp', 'floating-workspace')
+    const name = `aidev02-note-${randomUUID()}.md`
+    try {
+      await runtime.writeFileExplorerFile(
+        `path:${notes}`,
+        name,
+        'web note',
+        undefined,
+        undefined,
+        'local'
+      )
+      expect(await readFile(join(notes, name), 'utf8')).toBe('web note')
+      // Only this host's exact notes folder answers; any other path selector is refused.
+      await expect(
+        runtime.writeFileExplorerFile(
+          `path:${join('/tmp', 'not-the-notes-folder')}`,
+          name,
+          'x',
+          undefined,
+          undefined,
+          'local'
+        )
+      ).rejects.toThrow()
+    } finally {
+      await rm(join(notes, name), { force: true })
+    }
   })
 
   it('guides bare repo-id worktree selectors to the full id shape', async () => {

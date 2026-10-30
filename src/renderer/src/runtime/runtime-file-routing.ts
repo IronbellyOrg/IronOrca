@@ -7,6 +7,7 @@ import type { RuntimeClientTarget } from '../../../shared/runtime-client-target'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 import type { RuntimeFileOperationArgs } from './runtime-file-client-types'
 import { chatScratchFileAddress } from './runtime-chat-scratch-file-address'
+import { floatingNotesFileAddress } from './runtime-floating-notes-file-address'
 import type { LocalFileAccess } from '../../../shared/local-file-access'
 
 // Why local only: an SSH read is the remote host's to check, and its relay never sees this field.
@@ -89,11 +90,13 @@ export function getRemoteFileArgs(
     return null
   }
   const relativePath = getRelativePathInsideWorktree(context.worktreePath, absolutePath)
-  // Outside every workspace, a chat's scratch file is addressed by its folder on the host.
+  // Outside every workspace, a chat's scratch file is addressed by its folder on the host; a
+  // floating-workspace note by the host's notes folder (aidev02).
   const address =
-    relativePath === null
+    floatingNotesFileAddress(context.worktreeId, absolutePath) ??
+    (relativePath === null
       ? chatScratchFileAddress(absolutePath)
-      : { worktreeSelector: toRuntimeWorktreeSelector(context.worktreeId), relativePath }
+      : { worktreeSelector: toRuntimeWorktreeSelector(context.worktreeId), relativePath })
   if (!address) {
     return null
   }

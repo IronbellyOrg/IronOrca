@@ -1,6 +1,7 @@
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import { createUntitledMarkdownFileWithTemplateSelection } from './create-untitled-markdown'
 import { getConnectionId } from './connection-context'
+import { getWebFloatingRuntimeOwner } from './terminal-worktree-route'
 import { detectLanguage } from './language-detect'
 import type { AppState } from '@/store/types'
 import { focusTerminalTabSurface } from './focus-terminal-tab-surface'
@@ -57,15 +58,20 @@ export async function createFloatingWorkspaceMarkdownTab(
 ): Promise<void> {
   const targetGroupId = store.activeGroupIdByWorktree[FLOATING_TERMINAL_WORKTREE_ID]
   const floatingMarkdownDirectory =
-    markdownDirectory ?? (await window.api.app.getFloatingMarkdownDirectory())
+    // Why: '' is an unresolved directory, not a choice; ask the app again.
+    markdownDirectory || (await window.api.app.getFloatingMarkdownDirectory())
   if (!floatingMarkdownDirectory) {
     return
   }
+  // Web: notes live on the paired runtime (Electron: null, stays local).
+  const runtimeEnvironmentId = getWebFloatingRuntimeOwner()
   const fileInfo = await createUntitledMarkdownFileWithTemplateSelection(
     floatingMarkdownDirectory,
     FLOATING_TERMINAL_WORKTREE_ID,
     getConnectionId(FLOATING_TERMINAL_WORKTREE_ID) ?? undefined,
-    { kind: 'local' }
+    runtimeEnvironmentId
+      ? { kind: 'environment', environmentId: runtimeEnvironmentId }
+      : { kind: 'local' }
   )
   if (!fileInfo) {
     return
@@ -73,12 +79,14 @@ export async function createFloatingWorkspaceMarkdownTab(
   store.openFile(
     {
       ...fileInfo,
+      ...(runtimeEnvironmentId ? { runtimeEnvironmentId } : {}),
       language: detectLanguage(fileInfo.relativePath)
     },
     {
       preview: false,
       targetGroupId,
-      suppressActiveRuntimeFallback: true
+      // Why: a null owner hint would contradict the paired owner and fail the file open.
+      suppressActiveRuntimeFallback: !runtimeEnvironmentId
     }
   )
 }

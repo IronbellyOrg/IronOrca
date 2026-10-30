@@ -24,6 +24,7 @@ import {
   isChatScratchWorktreeId,
   resolveChatScratchSelectorFolder
 } from '../files/chat-scratch-file-root'
+import { resolveFloatingNotesSelectorFolder } from '../files/floating-notes-file-root'
 
 import type { RuntimeStore } from '../runtime-store-contract'
 import type { ResolvedWorktree } from '../runtime-worktree-path-identity'
@@ -91,11 +92,13 @@ export abstract class OrcaRuntimeWithFileCommands extends OrcaRuntimeWithPreserv
     getRuntimeId: () => this.runtimeId,
     requireStore: () => this.requireStore(),
     resolveRuntimeFileTarget: async (selector) => {
-      // Scratch folders are file-only; the general resolver also places chats.
-      const scratchFolder = await resolveChatScratchSelectorFolder(selector)
-      return scratchFolder
+      // Scratch and floating notes folders are file-only; the general resolver also places chats.
+      const pathFolder =
+        (await resolveChatScratchSelectorFolder(selector)) ??
+        (await resolveFloatingNotesSelectorFolder(selector))
+      return pathFolder
         ? {
-            worktree: { ...this.floatingWorkspaceToResolvedWorktree(scratchFolder), id: selector },
+            worktree: { ...this.floatingWorkspaceToResolvedWorktree(pathFolder), id: selector },
             executionHostId: LOCAL_EXECUTION_HOST_ID
           }
         : this.resolveRuntimeFileTarget(selector)

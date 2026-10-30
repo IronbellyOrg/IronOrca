@@ -8,6 +8,7 @@ import {
 import { isENOENT } from '../../ipc/filesystem/filesystem-path-containment'
 import { nativeChatScratchRootFor } from '../../native-chat/native-chat-scratch-folder'
 import { getProfileUserDataPath } from '../../orca-profiles/profile-storage-paths'
+import { getDefaultFloatingWorkspacePath } from '../../ipc/floating-workspace-directory'
 
 const PATH_SELECTOR_PREFIX = 'path:'
 const SCRATCH_FOLDER_NAME = /^[0-9a-f]{32}$/
@@ -16,12 +17,16 @@ function chatScratchRoot(): string {
   return nativeChatScratchRootFor(getProfileUserDataPath())
 }
 
+/** aidev02: also authorize the app-owned floating notes folder, as desktop already does. */
 export function resolveRuntimeAuthorizedPath(
   targetPath: string,
   store: RuntimeStore,
   options: ResolveAuthorizedPathOptions = {}
 ): Promise<string> {
-  return resolveAuthorizedPath(targetPath, store, { ...options, extraRoots: [chatScratchRoot()] })
+  return resolveAuthorizedPath(targetPath, store, {
+    ...options,
+    extraRoots: [chatScratchRoot(), getDefaultFloatingWorkspacePath()]
+  })
 }
 
 export function isChatScratchWorktreeId(worktreeId: string): boolean {

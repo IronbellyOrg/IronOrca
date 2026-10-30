@@ -333,6 +333,50 @@ describe('OrcaRuntimeService', () => {
     expect(spawnCall?.env?.ORCA_WORKSPACE_ROOT).toBeUndefined()
   })
 
+  it('starts a floating terminal in the requested absolute cwd', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'orca-floating-spawn-'))
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-floating-cwd' })
+    const runtime = new OrcaRuntimeService(store)
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    await runtime.createTerminal(`id:${FLOATING_TERMINAL_WORKTREE_ID}`, {
+      command: 'codex',
+      cwd: dir
+    })
+
+    const spawnCall = spawn.mock.calls[0]?.[0] as { cwd?: string } | undefined
+    expect(spawnCall?.cwd).toBe(dir)
+  })
+
+  it.skipIf(process.platform === 'win32')(
+    'joins a non-absolute floating cwd onto the floating root (why the RPC handler must forward an expanded path)',
+    async () => {
+      const spawn = vi.fn().mockResolvedValue({ id: 'pty-floating-raw' })
+      const runtime = new OrcaRuntimeService(store)
+      runtime.setPtyController({
+        spawn,
+        write: () => true,
+        kill: () => true,
+        getForegroundProcess: async () => null
+      })
+
+      await runtime.createTerminal(`id:${FLOATING_TERMINAL_WORKTREE_ID}`, {
+        command: 'codex',
+        cwd: '~/workspaces'
+      })
+
+      const spawnCall = spawn.mock.calls[0]?.[0] as { cwd?: string } | undefined
+      // Why a suffix: upstream's floating root is the server's floating directory setting
+      // (home by default), so assert the raw `~` was joined, not expanded.
+      expect(spawnCall?.cwd).toMatch(/\/~\/workspaces$/)
+    }
+  )
+
   it('rejects folder workspace terminal creation when the backing path is missing', async () => {
     const missingPath = join(tmpdir(), `orca-missing-folder-workspace-${randomUUID()}`)
     const spawn = vi.fn().mockResolvedValue({ id: 'pty-folder' })

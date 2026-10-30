@@ -24,6 +24,12 @@ export function useFloatingTerminalPanelStoreState() {
   // The host-resolved floating directory; the geometry hook keeps it fresh.
   const cwd = useAppStore((state) => state.floatingWorkspacePath)
   const setFloatingWorkspacePath = useAppStore((state) => state.setFloatingWorkspacePath)
+  // Why: a re-resolve TRIGGER only. The web client resolves the directory on the paired runtime,
+  // which may not be known yet on the first resolve; when the catalog fills this changes and the
+  // panel asks again. A primitive string keeps the selector referentially stable.
+  const runtimeEnvironmentKey = useAppStore((state) =>
+    (state.runtimeEnvironments ?? []).map((environment) => environment.id).join(',')
+  )
   const generatedTabTitlesEnabled = useAppStore(
     (state) => state.settings?.tabAutoGenerateTitle === true
   )
@@ -57,6 +63,7 @@ export function useFloatingTerminalPanelStoreState() {
     floatingTerminalCwd,
     cwd,
     setFloatingWorkspacePath,
+    runtimeEnvironmentKey,
     generatedTabTitlesEnabled,
     managedBrowserCreationEnabled
   }

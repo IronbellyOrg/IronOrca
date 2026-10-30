@@ -23,7 +23,10 @@ type FloatingTerminalPanelGeometryInput = Pick<
   | 'lastPersistedBoundsRef'
   | 'setMarkdownCwd'
 > &
-  Pick<FloatingTerminalPanelStoreState, 'floatingTerminalCwd' | 'setFloatingWorkspacePath'>
+  Pick<
+    FloatingTerminalPanelStoreState,
+    'floatingTerminalCwd' | 'setFloatingWorkspacePath' | 'runtimeEnvironmentKey'
+  >
 
 export function useFloatingTerminalPanelGeometry({
   boundsSourceRef,
@@ -34,7 +37,8 @@ export function useFloatingTerminalPanelGeometry({
   lastPersistedBoundsRef,
   setFloatingWorkspacePath,
   setMarkdownCwd,
-  floatingTerminalCwd
+  floatingTerminalCwd,
+  runtimeEnvironmentKey
 }: FloatingTerminalPanelGeometryInput) {
   const persistUserBounds = useCallback(
     (nextBounds: FloatingTerminalPanelCommittedBounds): void => {
@@ -103,28 +107,41 @@ export function useFloatingTerminalPanelGeometry({
 
   useEffect(() => {
     let cancelled = false
-    void window.api.app.getFloatingTerminalCwd({ path: floatingTerminalCwd }).then((nextCwd) => {
-      if (!cancelled) {
-        // Publish the resolved directory once for every floating-workspace consumer, including row creation.
-        setFloatingWorkspacePath(nextCwd)
-      }
-    })
+    void window.api.app
+      .getFloatingTerminalCwd({ path: floatingTerminalCwd })
+      .then((nextCwd) => {
+        if (!cancelled) {
+          // Publish the resolved directory once for every floating-workspace consumer, including row creation.
+          setFloatingWorkspacePath(nextCwd)
+        }
+      })
+      .catch(() => {
+        // Keep the previous directory: a failed resolve must not become an unhandled rejection.
+      })
     return () => {
       cancelled = true
     }
-  }, [floatingTerminalCwd, setFloatingWorkspacePath])
+    // runtimeEnvironmentKey re-runs the resolve once the runtime environment is known (web client).
+  }, [floatingTerminalCwd, runtimeEnvironmentKey, setFloatingWorkspacePath])
 
   useEffect(() => {
     let cancelled = false
-    void window.api.app.getFloatingMarkdownDirectory().then((nextMarkdownCwd) => {
-      if (!cancelled) {
-        setMarkdownCwd(nextMarkdownCwd)
-      }
-    })
+    void window.api.app
+      .getFloatingMarkdownDirectory()
+      .then((nextMarkdownCwd) => {
+        if (!cancelled) {
+          setMarkdownCwd(nextMarkdownCwd)
+        }
+      })
+      .catch(() => {
+        // Keep the previous directory: a failed resolve must not become an unhandled rejection.
+      })
     return () => {
       cancelled = true
     }
-  }, [setMarkdownCwd])
+    // runtimeEnvironmentKey: on web the notes directory comes from the paired runtime, so resolve
+    // again once that environment is known (same as the terminal cwd above).
+  }, [runtimeEnvironmentKey, setMarkdownCwd])
 
   return { previewUserBounds, commitUserBounds }
 }

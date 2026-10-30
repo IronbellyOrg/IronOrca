@@ -10,7 +10,6 @@ import {
   type WorktreeOperationGenerationSnapshot
 } from './worktree-operation-generation'
 import {
-  getFloatingWorkspaceOperationRoute,
   resolveWorktreeOperationRoute,
   type WorktreeOperationRoute,
   type WorktreeOperationRouteResolution,
@@ -22,6 +21,8 @@ import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
 } from '@/store/workspace-record-selectors'
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
+import { getWebFloatingRuntimeOwner } from './terminal-worktree-route'
 
 export type EditorFileOperationProvenance = {
   generation: WorktreeOperationGenerationSnapshot
@@ -97,9 +98,10 @@ export function resolveEditorOwnerRoute(
 ): WorktreeOperationRouteResolution & {
   ownershipProjection: EditorFileOperationProvenance['ownershipProjection']
 } {
-  const floatingRoute = getFloatingWorkspaceOperationRoute(worktreeId)
-  if (floatingRoute) {
-    return { kind: 'resolved', route: floatingRoute, ownershipProjection: 'explicit' }
+  // Why local, not the shared helper: on web the floating workspace's files live on the paired
+  // runtime, but floating terminals must keep their own route (closing a tab ends its shell).
+  if (worktreeId === FLOATING_TERMINAL_WORKTREE_ID) {
+    return { kind: 'resolved', route: floatingWorkspaceRoute(), ownershipProjection: 'explicit' }
   }
   const ownerState = focusFreeRouteStateOf(state)
   const scope = parseWorkspaceKey(worktreeId)
@@ -173,6 +175,37 @@ export function assertEditorFileOperationCurrent(
   return route
 }
 
+// Why: the web client has no local filesystem, so its floating workspace files live on the paired
+// runtime, like its floating terminals (see setWebFloatingRuntimeOwnerResolver). Electron: local.
+function floatingWorkspaceRoute(): WorktreeOperationRoute {
+  const owner = getWebFloatingRuntimeOwner()
+  return owner
+    ? { executionHostId: `runtime:${encodeURIComponent(owner)}`, runtimeEnvironmentId: owner }
+    : { executionHostId: 'local', runtimeEnvironmentId: null }
+}
+
+// Why: the floating workspace has no worktree row, so callers that look its root up in the
+// worktree list (editor save, untitled cleanup) pass null. Without a root the runtime write has
+// no relative path and falls back to the local filesystem, which the web client refuses
+// ("Failed to save file"). Its files carry their path relative to that root, so recover it.
+function floatingWorkspaceRoot(file: {
+  worktreeId: string
+  filePath?: string
+  relativePath?: string
+}): string | null {
+  const { filePath, relativePath } = file
+  if (file.worktreeId !== FLOATING_TERMINAL_WORKTREE_ID || !filePath || !relativePath) {
+    return null
+  }
+  for (const sep of ['/', '\\']) {
+    const suffix = sep + relativePath.split('/').join(sep)
+    if (filePath.endsWith(suffix) && filePath.length > suffix.length) {
+      return filePath.slice(0, -suffix.length)
+    }
+  }
+  return null
+}
+
 function resolveCurrentEditorRoute(
   state: EditorOwnerState,
   worktreeId: string,
@@ -214,6 +247,8 @@ export function getEditorFileOperationContext(
     runtimeEnvironmentId?: string | null
     externalSshTargetId?: string
     operationProvenance?: EditorFileOperationProvenance
+    filePath?: string
+    relativePath?: string
   },
   worktreePath: string | null
 ): {
@@ -244,7 +279,8 @@ export function getEditorFileOperationContext(
       ? (selectFolderWorkspaces(state).find(
           (workspace) => workspace.id === workspaceScope.folderWorkspaceId
         )?.folderPath ?? null)
-      : null)
+      : null) ??
+    floatingWorkspaceRoot(file)
   if (!host) {
     throw new Error(OWNER_CHANGED_MESSAGE)
   }
