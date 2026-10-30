@@ -117,12 +117,18 @@ export const CORE_HANDLERS: Record<string, CommandHandler> = {
     if (superviseError) {
       throw new RuntimeClientError('invalid_argument', superviseError)
     }
+    const bindValue = flags.get('bind')
+    if (flags.has('bind') && (typeof bindValue !== 'string' || bindValue.length === 0)) {
+      throw new RuntimeClientError('invalid_argument', 'Missing value for --bind.')
+    }
+    const bindHost = typeof bindValue === 'string' ? bindValue : undefined
     const validationError = getServeOptionValidationError({
       noPairing,
       mobilePairing,
       grantDesktopControl,
       recipeJson,
-      projectRoot
+      projectRoot,
+      ...(bindHost !== undefined ? { bindHost } : {})
     })
     if (validationError) {
       throw new RuntimeClientError('invalid_argument', validationError)
@@ -139,7 +145,8 @@ export const CORE_HANDLERS: Record<string, CommandHandler> = {
       recipeJson,
       projectRoot,
       ...(force ? { force: true } : {}),
-      ...(supervise ? { supervise: true } : {})
+      ...(supervise ? { supervise: true } : {}),
+      ...(bindHost !== undefined ? { bindHost } : {})
     })
     process.exitCode = exitCode
   },

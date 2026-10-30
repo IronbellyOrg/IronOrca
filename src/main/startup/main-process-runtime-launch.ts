@@ -81,7 +81,7 @@ function e2eHeadlessServeWithoutBrowser(): boolean {
   )
 }
 
-function installRuntimeRpc(
+export function installRuntimeRpc(
   runtime: RuntimeService,
   serveOptions: ReturnType<typeof getServeOptions> | null
 ): OrcaRuntimeRpcServer {
@@ -115,6 +115,7 @@ function installRuntimeRpc(
           requirePinnedWsPort: true
         }
       : {}),
+    ...(serveOptions?.bindHost !== undefined ? { pinnedBindHost: serveOptions.bindHost } : {}),
     webClientRoot: getBundledWebClientRoot()
   })
   state.runtimeRpc = runtimeRpc

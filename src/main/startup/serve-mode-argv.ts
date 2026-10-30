@@ -12,6 +12,7 @@ const CLI_TO_SERVE_FLAG = new Map([
 ])
 
 const CLI_TO_SERVE_VALUE_FLAG = new Map([
+  ['--bind', '--serve-bind'],
   ['--port', '--serve-port'],
   ['--pairing-address', '--serve-pairing-address'],
   ['--project-root', '--serve-project-root']
@@ -20,6 +21,7 @@ const CLI_TO_SERVE_VALUE_FLAG = new Map([
 /** Flags consuming values in either argv shape; omitted flags with values named serve can cause false subcommand detection. */
 export const VALUE_TAKING_FLAGS = new Set([
   ...CLI_TO_SERVE_VALUE_FLAG.keys(),
+  '--serve-bind',
   '--serve-port',
   '--serve-pairing-address',
   '--serve-project-root',

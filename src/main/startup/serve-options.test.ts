@@ -3,6 +3,55 @@ import { getServeOptions } from './serve-options'
 import { normalizeServeModeArgv } from './serve-mode-argv'
 
 describe('getServeOptions', () => {
+  it.each(['--bind', '--serve-bind'])('parses both forms of %s', (flag) => {
+    for (const bindHost of ['127.0.0.1', '::1']) {
+      for (const valueArgs of [[flag, bindHost], [`${flag}=${bindHost}`]]) {
+        const argv = ['/AppRun', '--serve', ...valueArgs]
+        expect(getServeOptions(argv).bindHost).toBe(bindHost)
+        expect(getServeOptions(normalizeServeModeArgv(argv)).bindHost).toBe(bindHost)
+      }
+    }
+  })
+
+  it.each(['--bind', '--serve-bind'])('rejects missing and invalid %s values', (flag) => {
+    for (const valueArgs of [[flag], [`${flag}=`], [flag, ''], [flag, '--json'], [flag, '--']]) {
+      expect(() => getServeOptions(['/AppRun', '--serve', ...valueArgs])).toThrow(/Missing value/)
+    }
+    for (const value of [
+      ' ',
+      'localhost',
+      'https://127.0.0.1',
+      '127.0.0.1:6768',
+      '[::1]',
+      'false'
+    ]) {
+      for (const valueArgs of [[flag, value], [`${flag}=${value}`]]) {
+        expect(() => getServeOptions(['/AppRun', '--serve', ...valueArgs])).toThrow(
+          /Invalid --bind/
+        )
+      }
+    }
+  })
+
+  it('preserves omitted, terminator and final-occurrence bind semantics', () => {
+    expect(getServeOptions(['/AppRun', '--serve'])).not.toHaveProperty('bindHost')
+    expect(getServeOptions(['/AppRun', '--serve', '--', '--bind=bad'])).not.toHaveProperty(
+      'bindHost'
+    )
+    expect(
+      getServeOptions(['/AppRun', '--serve', '--bind=127.0.0.1', '--serve-bind=::1']).bindHost
+    ).toBe('::1')
+    expect(() =>
+      getServeOptions(['/AppRun', '--serve', '--bind=127.0.0.1', '--serve-bind'])
+    ).toThrow(/Missing value/)
+  })
+
+  it.each(['--bnd', '--serve-bnd'])('rejects the bind typo %s', (flag) => {
+    expect(() =>
+      getServeOptions(normalizeServeModeArgv(['/AppRun', 'serve', flag, '127.0.0.1']))
+    ).toThrow(/Unknown flag/)
+  })
+
   it('parses a valid launch', () => {
     expect(
       getServeOptions(['/AppRun', '--serve', '--serve-port', '6768', '--serve-no-pairing'])
