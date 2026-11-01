@@ -2,6 +2,8 @@
 export type ServeOrcaAppArgs = {
   json?: boolean
   port?: string | null
+  /** Literal IP the listener stays pinned to (aidev02 loopback-bind); omitted keeps each host's default. */
+  bindHost?: string
   pairingAddress?: string | null
   noPairing?: boolean
   mobilePairing?: boolean
@@ -18,6 +20,7 @@ export function serveOptionArgs(args: ServeOrcaAppArgs, prefix: '--' | '--serve-
   return [
     ...(args.json ? [`${prefix}json`] : []),
     ...(args.port ? [`${prefix}port`, args.port] : []),
+    ...(args.bindHost !== undefined ? [`${prefix}bind`, args.bindHost] : []),
     ...(args.pairingAddress ? [`${prefix}pairing-address`, args.pairingAddress] : []),
     ...(args.noPairing ? [`${prefix}no-pairing`] : []),
     ...(args.mobilePairing ? [`${prefix}mobile-pairing`] : []),
@@ -35,8 +38,8 @@ export function orcadServeArgs(
   bindHost = '0.0.0.0'
 ): string[] {
   return [
-    '--bind',
-    bindHost,
+    // Why: a caller-pinned bind (serveOptionArgs) must replace, not duplicate, orcad's default.
+    ...(args.bindHost === undefined ? ['--bind', bindHost] : []),
     ...serveOptionArgs(args, '--'),
     ...(webClientRoot ? ['--web-client-root', webClientRoot] : [])
   ]

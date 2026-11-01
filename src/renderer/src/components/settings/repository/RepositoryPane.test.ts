@@ -175,7 +175,8 @@ describe('RepositoryPane search entries', () => {
     useAppStore.setState({
       settingsSearchQuery: 'Example Repo',
       settingsSearchInputQuery: 'Example Repo',
-      settings: getDefaultSettings('/tmp'),
+      // Upstream's baseline: no disabled agents (aidev02 disables Auggie for new installs).
+      settings: { ...getDefaultSettings('/tmp'), disabledTuiAgents: [] },
       tabsByWorktree: {
         [worktreeId]: [terminalTab('tab-1', worktreeId), terminalTab('tab-2', worktreeId)]
       },

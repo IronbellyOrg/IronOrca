@@ -52,7 +52,7 @@ export const TUI_AGENT_AUTO_PICK_ORDER = [
 ] as const satisfies readonly TuiAgent[]
 
 // Fresh installs show Agent Teams; the migration separately preserves legacy hidden defaults.
-export const DEFAULT_DISABLED_TUI_AGENTS = [] as const satisfies readonly TuiAgent[]
+export const DEFAULT_DISABLED_TUI_AGENTS = ['aug'] as const satisfies readonly TuiAgent[]
 
 export function pickTuiAgent(
   preferred: TuiAgent | 'blank' | null | undefined,

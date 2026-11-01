@@ -19,6 +19,7 @@ import { getHostDisplayLabelOverrides } from '../../../shared/host-setting-overr
 import { DELEGATED_PHONE_NAME_MAX_CHARS } from '../../../shared/delegated-mobile-device-contract'
 import { allocateTerminalSubscriptionStreamId } from '../rpc/methods/terminal/terminal-subscription-stream-id'
 import { isStructuredNativeChatDefaultFor } from '../rpc/methods/structured-agent-session-policy'
+import { browserMobilePairingRequest } from './runtime-rpc-browser-mobile-pairing'
 import {
   createWebClientUrl,
   DEVICE_REGISTRY_UNAVAILABLE_GUIDANCE,
@@ -29,6 +30,19 @@ import {
 } from './runtime-rpc-pairing-types'
 
 export class RuntimeRpcPairing extends RuntimeRpcNetworkExposure {
+  protected override handleBrowserMobilePairingRequest(
+    method: string,
+    params: unknown
+  ): Promise<unknown> {
+    return browserMobilePairingRequest(
+      this,
+      this.browserMobilePairingAddress,
+      method,
+      params,
+      this.nativeMobilePairingFile
+    )
+  }
+
   getDeviceRegistry(): DeviceRegistry | null {
     return this.deviceRegistry
   }

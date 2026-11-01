@@ -203,6 +203,12 @@ test.describe('Worktree Lineage', () => {
   test('updates nested child preview status when the child terminal sleeps', async ({
     orcaPage
   }) => {
+    // aidev02: the new card style is on by default and shows branch identity in place of the
+    // Active/Inactive status this spec reads; the status text belongs to the classic card.
+    await orcaPage.evaluate(async () => {
+      const settings = await window.api.settings.set({ experimentalNewWorktreeCardStyle: false })
+      window.__store?.setState({ settings })
+    })
     const { parentId, childId } = await seedLineageScenario(orcaPage)
     const parentRow = worktreeOption(orcaPage, parentId)
     const childRow = worktreeOption(orcaPage, childId)
@@ -280,6 +286,12 @@ test.describe('Worktree Lineage', () => {
   test('shows parent and child agent rows while the parent workspace is active', async ({
     orcaPage
   }) => {
+    // aidev02: generated tab titles are on by default and would replace the seeded prompts
+    // these agent rows are located by; this spec covers lineage rows, not titles.
+    await orcaPage.evaluate(async () => {
+      const settings = await window.api.settings.set({ tabAutoGenerateTitle: false })
+      window.__store?.setState({ settings })
+    })
     const { parentId, childId } = await seedLineageScenario(orcaPage)
     const parentRow = worktreeOption(orcaPage, parentId)
     const childRow = worktreeOption(orcaPage, childId)

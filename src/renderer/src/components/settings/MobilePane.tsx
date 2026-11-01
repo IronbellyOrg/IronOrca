@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { useAppStore } from '../../store'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import {
+  countPairedMobileDevices,
   getPairedMobileDevicesSnapshot,
   usePairedMobileDevices
 } from '../mobile/paired-mobile-devices'
@@ -189,7 +190,7 @@ export function MobilePane(): React.JSX.Element {
             setQrError(result.qrDataUrl === null)
             setRelayMintFailure(null)
             setEndpoint(result.endpoint)
-            setDeviceCountAtQr(getPairedMobileDevicesSnapshot().length)
+            setDeviceCountAtQr(countPairedMobileDevices(getPairedMobileDevicesSnapshot()))
             clearCodeCopiedResetTimer()
             setCodeCopied(false)
             setRotateNextQr(false)
@@ -331,7 +332,7 @@ export function MobilePane(): React.JSX.Element {
 
   useMobilePairingDevicePolling({
     deviceCountAtQr,
-    currentDeviceCount: devices.length,
+    currentDeviceCount: countPairedMobileDevices(devices),
     loadDevices
   })
 

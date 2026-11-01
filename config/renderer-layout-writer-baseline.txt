@@ -119,3 +119,4 @@
 7 src/renderer/src/store/workspace-layout-frame-held-tabs.ts
 4 src/renderer/src/store/workspace-layout-frame-slices.ts
 12 src/renderer/src/store/workspace-layout-frame-store-patch.ts
+7 src/renderer/src/web/web-workspace-session.ts # aidev02 floating workspace: the web client's floating session is renderer-held, not a runtime-owned workspace

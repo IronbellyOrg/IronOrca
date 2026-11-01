@@ -9,7 +9,10 @@ import type {
   WorkspaceSessionPatch,
   WorkspaceSessionState
 } from '../../../../shared/workspace-session-state-types'
-import { sanitizeWebRuntimeWorkspaceSession } from '../web-workspace-session'
+import {
+  sanitizeWebRuntimeWorkspaceSession,
+  webFloatingWorkspaceSlice
+} from '../web-workspace-session'
 import { readLocalWebUIState } from './web-preferences-store'
 import { requireActiveEnvironmentOrNull } from './web-runtime-session'
 import { SESSION_STORAGE_KEY, readJson, writeJson } from './web-storage'
@@ -53,11 +56,14 @@ export function getStoredWorkspaceSession(hostId?: string | null): WorkspaceSess
   }
   const ui = readLocalWebUIState()
   // Why: replaying browser-local terminal handles first creates stale remote PTYs; mirror host session-tabs instead.
+  // The floating workspace is the exception: the host mirror skips it, so its tabs come from
+  // browser storage (already stripped of terminal handles by the sanitizer).
   return sanitizeWebRuntimeWorkspaceSession({
     ...getDefaultWorkspaceSession(),
     activeRepoId: ui.lastActiveRepoId,
     activeWorktreeId: ui.lastActiveWorktreeId,
-    lastVisitedAtByWorktreeId: localSession.lastVisitedAtByWorktreeId
+    lastVisitedAtByWorktreeId: localSession.lastVisitedAtByWorktreeId,
+    ...webFloatingWorkspaceSlice(localSession)
   })
 }
 

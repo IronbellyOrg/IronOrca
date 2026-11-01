@@ -6,6 +6,27 @@ import {
 } from './serve-mode-argv'
 
 describe('serve-mode-argv', () => {
+  it.each(['127.0.0.1', '::1'])('rewrites direct and mixed bind argv for %s', (host) => {
+    const expected = ['app', '--serve', '--serve-bind', host]
+    for (const mode of ['serve', '--serve']) {
+      expect(normalizeServeModeArgv(['app', mode, '--bind', host])).toEqual(expected)
+      expect(normalizeServeModeArgv(['app', mode, `--bind=${host}`])).toEqual(expected)
+    }
+    expect(normalizeServeModeArgv(expected)).toEqual(expected)
+    expect(normalizeServeModeArgv(['app', 'serve', '--', '--bind', host])).toEqual([
+      'app',
+      '--serve',
+      '--',
+      '--bind',
+      host
+    ])
+  })
+
+  it.each(['--bind', '--serve-bind'])('does not mistake a %s value for the subcommand', (flag) => {
+    expect(findServeSubcommandIndex(['app', flag, 'serve'])).toBe(-1)
+    expect(findServeSubcommandIndex(['app', flag, '127.0.0.1', 'serve'])).toBe(3)
+  })
+
   it('detects --serve and bare serve subcommand', () => {
     expect(argvRequestsServeMode(['orca', '--serve'])).toBe(true)
     expect(argvRequestsServeMode(['/AppRun', 'serve'])).toBe(true)

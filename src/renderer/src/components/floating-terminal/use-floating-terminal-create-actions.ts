@@ -8,6 +8,7 @@ import { openDocumentInFloatingWorkspace } from '@/lib/open-document-in-floating
 import { extractIpcErrorMessage } from '@/lib/ipc-error'
 import { focusTerminalTabSurface } from '@/lib/focus-terminal-tab-surface'
 import { createBrowserUuid } from '@/lib/browser-uuid'
+import { getWebFloatingRuntimeOwner } from '@/lib/terminal-worktree-route'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
@@ -91,24 +92,39 @@ export function useFloatingTerminalCreateActions({
   }, [activeGroup, browserDefaultUrl, createBrowserTab])
 
   const createFloatingMarkdownTab = useCallback(() => {
-    if (!markdownCwd) {
-      return
-    }
     void (async () => {
       try {
+        // Why: '' means the directory was not resolved (web: server not answering yet); ask again
+        // so a click after it recovers works without remounting the panel.
+        const directory = markdownCwd || (await window.api.app.getFloatingMarkdownDirectory())
+        if (!directory) {
+          // Why: an unresolved notes directory used to make this a silent no-op on web.
+          toast.error(
+            translate(
+              'auto.components.floating.terminal.FloatingTerminalPanel.notes-directory-unavailable',
+              'The floating notes directory is not available yet. Try again in a moment.'
+            )
+          )
+          return
+        }
+        // Web: notes live on the paired runtime (Electron: null, stays local).
+        const runtimeEnvironmentId = getWebFloatingRuntimeOwner()
         const fileInfo = await createUntitledMarkdownFileWithTemplateSelection(
-          markdownCwd,
+          directory,
           FLOATING_TERMINAL_WORKTREE_ID,
           getConnectionId(FLOATING_TERMINAL_WORKTREE_ID) ?? undefined,
-          LOCAL_TARGET
+          runtimeEnvironmentId
+            ? { kind: 'environment', environmentId: runtimeEnvironmentId }
+            : LOCAL_TARGET
         )
         if (!fileInfo) {
           return
         }
-        openFile(fileInfo, {
+        openFile(runtimeEnvironmentId ? { ...fileInfo, runtimeEnvironmentId } : fileInfo, {
           preview: false,
           targetGroupId: activeGroup?.id,
-          suppressActiveRuntimeFallback: true
+          // Why: a null owner hint would contradict the paired owner and fail the file open.
+          suppressActiveRuntimeFallback: !runtimeEnvironmentId
         })
       } catch (error) {
         toast.error(extractIpcErrorMessage(error, 'Failed to create untitled markdown file.'))

@@ -5,6 +5,13 @@ import type { MobileRelayMintFailure } from '../../shared/mobile-relay-mint-fail
 import type { RuntimeAccessGrant } from '../../shared/runtime-access-grants'
 
 export type MobileApi = {
+  /** Configured proxy routes, not OS network interfaces or proof of phone reachability. */
+  listPairingEndpoints?: () => Promise<{
+    endpoints: {
+      address: string
+      provenance: 'configured-owner-route' | 'configured-tailnet-route'
+    }[]
+  }>
   listNetworkInterfaces: () => Promise<{
     interfaces: { name: string; address: string; hasDefaultRoute?: boolean }[]
   }>

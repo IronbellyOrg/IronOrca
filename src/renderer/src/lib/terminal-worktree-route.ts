@@ -48,6 +48,24 @@ function ownershipForRuntimeEnvironmentId(
     : LOCAL_OR_SSH_TERMINAL_HOST
 }
 
+let webFloatingRuntimeOwnerResolver: (() => string | null) | null = null
+
+/**
+ * The web client has no local PTYs, so its floating terminal can only run on the paired runtime.
+ * That environment lives in the web client's own state, not in settings (its active-environment
+ * preference stays null after pairing) and not in the store's runtimeEnvironments slice (filled
+ * asynchronously, possibly after the pane connects). Web preload registers a synchronous reader
+ * here; Electron never does, so its floating terminal stays local.
+ */
+export function setWebFloatingRuntimeOwnerResolver(resolver: (() => string | null) | null): void {
+  webFloatingRuntimeOwnerResolver = resolver
+}
+
+/** The paired runtime that owns web floating-workspace files and terminals; null on Electron. */
+export function getWebFloatingRuntimeOwner(): string | null {
+  return webFloatingRuntimeOwnerResolver ? webFloatingRuntimeOwnerResolver() : null
+}
+
 export function resolveTerminalHostOwnership(
   state: WorktreeRuntimeOwnerState,
   worktreeId: string | null | undefined,
@@ -193,6 +211,29 @@ export function resolveTerminalWorktreeRoute(
   return ownership.kind === 'unresolved'
     ? null
     : { runtimeEnvironmentId: ownership.runtimeEnvironmentId }
+}
+
+/**
+ * Route used when a pane CONNECTS its pty: resolveTerminalWorktreeRoute, except that in the web
+ * client the floating terminal runs on the paired runtime.
+ *
+ * Why this is a separate function and not part of resolveTerminalHostOwnership: closing a tab,
+ * bulk-closing, and tab creation all branch on the shared route and treat a runtime owner as a
+ * host-mirrored session tab. The floating terminal is never host-mirrored (web-session-tabs-sync
+ * excludes it), so changing the shared route would make closing a floating tab skip the remote
+ * terminal.close and leak the shell. Only the transport choice needs the runtime here.
+ */
+export function resolveTerminalPaneSpawnRoute(
+  state: AppState,
+  worktreeId: string | null | undefined
+): TerminalWorktreeRoute | null {
+  if (worktreeId === FLOATING_TERMINAL_WORKTREE_ID && webFloatingRuntimeOwnerResolver) {
+    const webOwner = webFloatingRuntimeOwnerResolver()
+    if (webOwner) {
+      return { runtimeEnvironmentId: webOwner }
+    }
+  }
+  return resolveTerminalWorktreeRoute(state, worktreeId)
 }
 
 export function hasUnroutableTerminalWorktreeOwner(state: AppState, worktreeId: string): boolean {

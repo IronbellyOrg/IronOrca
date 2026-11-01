@@ -129,7 +129,7 @@ export function CloneStep({
                 runtimeEnvironmentId
                   ? translate(
                       'auto.components.sidebar.AddRepoSteps.remoteCloneParentPlaceholder',
-                      '/home/user/projects'
+                      '/home/coder/workspaces'
                     )
                   : translate(
                       'auto.components.sidebar.AddRepoSteps.2ce3f6edf8',

@@ -1,4 +1,8 @@
 import type { WebSocket } from 'ws'
+import {
+  BROWSER_MOBILE_PAIRING_METHODS,
+  browserMobilePairingError
+} from './runtime-rpc-browser-mobile-pairing'
 import type {
   PairingGetEndpointsParams,
   PairingProvisionRelayParams
@@ -32,6 +36,14 @@ function injectDeviceScope(response: string, scope: DeviceScope): string {
 }
 
 export class RuntimeRpcWebSocketDispatch extends RuntimeRpcMobileDevices {
+  // The pairing subclass supplies credential operations; dispatch alone fails closed.
+  protected async handleBrowserMobilePairingRequest(
+    _method: string,
+    _params: unknown
+  ): Promise<unknown> {
+    throw new Error('mobile_pairing_unavailable')
+  }
+
   // Relay only to configured execution hosts; unreachable targets fail, never run locally. Return null after relay/reply.
   private relayMobileRequest(
     request: RpcRequest,
@@ -177,6 +189,34 @@ export class RuntimeRpcWebSocketDispatch extends RuntimeRpcMobileDevices {
         return
       }
       request = localRequest
+    }
+
+    if (BROWSER_MOBILE_PAIRING_METHODS.has(request.method)) {
+      // A request-body token alone is not sufficient for credential management: the socket itself
+      // must have proved the runtime identity (bound token, or an upstream keyed E2EE session).
+      if (device.scope !== 'runtime' || (!authenticatedDeviceToken && !authenticatedSocket)) {
+        reply(
+          JSON.stringify(
+            this.buildError(request.id, 'forbidden', 'Runtime authentication required.')
+          )
+        )
+        return
+      }
+      try {
+        const result = await this.handleBrowserMobilePairingRequest(request.method, request.params)
+        reply(
+          JSON.stringify({
+            id: request.id,
+            ok: true,
+            result,
+            _meta: { runtimeId: this.runtime.getRuntimeId() }
+          })
+        )
+      } catch (error) {
+        const safe = browserMobilePairingError(error)
+        reply(JSON.stringify(this.buildError(request.id, safe.code, safe.message)))
+      }
+      return
     }
 
     // Why: bind the device to this socket so ws.on('close') knows which client disconnected.

@@ -90,7 +90,9 @@ function renderChat(
 
 describe('Chat settings page', () => {
   it('preserves clicked provider choices while queued saves and inventory changes settle', async () => {
-    let latest = getDefaultSettings('/tmp')
+    // From no saved choices (upstream's baseline); aidev02's terminal-first defaults are covered
+    // by structured-agent-native-chat-defaults.test.ts.
+    let latest = { ...getDefaultSettings('/tmp'), nativeChatProviders: {} }
     state.settings = latest
     state.localDetectedAgentIdsByContext = { host: [] }
     let finish: () => void = () => {}

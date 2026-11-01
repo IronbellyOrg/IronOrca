@@ -1,6 +1,10 @@
 import type { PreloadApi } from '../../../../preload/api-types'
 import { sanitizeWebRuntimeWorkspaceSession } from '../web-workspace-session'
 import { sessionStorageKeyForHost } from './web-workspace-session-api'
+import {
+  resolveWebFloatingMarkdownDirectory,
+  resolveWebFloatingTerminalCwd
+} from './web-floating-workspace-cwd'
 import { mergeWebUIState } from './web-preference-normalization'
 import { readLocalWebUIState } from './web-preferences-store'
 import { UI_STORAGE_KEY, writeJson } from './web-storage'
@@ -52,8 +56,9 @@ export function createWebAppApi(): Partial<PreloadApi> {
       getKeyboardLayoutSnapshot: () => Promise.resolve(null),
       onKeyboardLayoutChanged: () => () => undefined,
       setUnreadDockBadgeCount: () => Promise.resolve(),
-      getFloatingTerminalCwd: () => Promise.resolve(''),
-      getFloatingMarkdownDirectory: () => Promise.resolve(''),
+      // Why the argument matters: the panel and Settings pass the stored directory only as {path}.
+      getFloatingTerminalCwd: (args) => resolveWebFloatingTerminalCwd(args?.path),
+      getFloatingMarkdownDirectory: () => resolveWebFloatingMarkdownDirectory(),
       pickFloatingMarkdownDocument: () => Promise.resolve(null),
       pickFloatingWorkspaceDirectory: () => Promise.resolve(null),
       // Browser fallback has no app-owned userData dir; reject so the sentinel can't claim sensitive evidence was persisted.

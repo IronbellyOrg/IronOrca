@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { toast } from 'sonner'
 import { callRuntimeRpc } from '@/runtime/runtime-rpc-client'
+import { browseRuntimeServerDirectory } from '@/runtime/runtime-server-directory-browser'
 import type { AddRepoExistingWorkspaceSource } from '../../../../shared/telemetry-events'
 import type { Repo } from '../../../../shared/repo-types'
 import { getCloneDestinationAutoFill } from './clone-defaults'
+import { getDefaultCreateProjectParent } from './create-project-defaults'
 import type { AddRepoDialogStep } from './add-repo-dialog-types'
 import { translate } from '@/i18n/i18n'
 import { extractIpcErrorMessage } from '@/lib/ipc-error'
@@ -64,6 +66,14 @@ export function useAddRepoCloneFlow({
   const cloneGenRef = useRef(0)
   // Allow late settings hydration to fill the default once per clone-step entry.
   const [cloneStepAutoFilled, setCloneStepAutoFilled] = useState(false)
+  // Why: runtime hosts resolve the server home asynchronously. One attempt per
+  // clone-step entry and host; the generation drops results that arrive after a
+  // reset, a host change or leaving the step.
+  const runtimeCloneAutoFillAttemptedRef = useRef<string | null>(null)
+  const runtimeCloneAutoFillGenRef = useRef(0)
+  // Why: a host switch runs resetCloneFlow after this hook's effect in the same
+  // commit; the epoch re-runs the effect so the new host still gets its attempt.
+  const [runtimeCloneResetEpoch, setRuntimeCloneResetEpoch] = useState(0)
 
   useEffect(() => {
     if (!isCloning) {
@@ -71,6 +81,34 @@ export function useAddRepoCloneFlow({
     }
     return window.api.repos.onCloneProgress(setCloneProgress)
   }, [isCloning])
+
+  const runtimeCloneEnvironmentId = activeRuntimeEnvironmentId?.trim() || null
+  useEffect(() => {
+    if (step !== 'clone' || !runtimeCloneEnvironmentId) {
+      runtimeCloneAutoFillGenRef.current++
+      runtimeCloneAutoFillAttemptedRef.current = null
+      return
+    }
+    if (runtimeCloneAutoFillAttemptedRef.current === hostToken || cloneDestination.trim()) {
+      return
+    }
+    runtimeCloneAutoFillAttemptedRef.current = hostToken
+    const gen = ++runtimeCloneAutoFillGenRef.current
+    void browseRuntimeServerDirectory(runtimeCloneEnvironmentId, '~')
+      .then((result) => {
+        if (gen !== runtimeCloneAutoFillGenRef.current || hostToken !== hostTokenRef.current) {
+          return
+        }
+        const parent = getDefaultCreateProjectParent(result.resolvedPath)
+        if (parent) {
+          // Why: a functional update keeps text the user typed while the request was in flight.
+          setCloneDestination((prev) => (prev.trim() ? prev : parent))
+        }
+      })
+      .catch(() => {
+        // Keep the destination empty; the user can still type a host path.
+      })
+  }, [cloneDestination, hostToken, runtimeCloneEnvironmentId, runtimeCloneResetEpoch, step])
 
   const cloneDestinationAutoFill = getCloneDestinationAutoFill({
     step,
@@ -84,13 +122,16 @@ export function useAddRepoCloneFlow({
       setCloneStepAutoFilled(false)
     }
   } else if (cloneDestinationAutoFill) {
-    // Late defaults may seed local destinations; remote clone paths remain user-entered.
+    // Late defaults seed local destinations; runtime hosts are prefilled by the effect above.
     setCloneStepAutoFilled(true)
     setCloneDestination(cloneDestinationAutoFill.destination)
   }
 
   const resetCloneFlow = useCallback((): void => {
     cloneGenRef.current++
+    runtimeCloneAutoFillGenRef.current++
+    runtimeCloneAutoFillAttemptedRef.current = null
+    setRuntimeCloneResetEpoch((epoch) => epoch + 1)
     setCloneUrl('')
     setCloneDestination('')
     setIsCloning(false)

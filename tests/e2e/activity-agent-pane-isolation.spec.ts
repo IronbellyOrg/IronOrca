@@ -125,8 +125,11 @@ async function enableInlineAgentCards(page: Page): Promise<void> {
 async function enableActivityAgentsView(page: Page): Promise<void> {
   await page.evaluate(async () => {
     // Keep the migration intro from covering the activity toggle.
+    // aidev02: generated tab titles are on by default and would replace the seeded prompts
+    // these rows are located by; this spec covers pane isolation, not titles.
     const settings = await window.api.settings.set({
-      agentsSidebarIntroShown: true
+      agentsSidebarIntroShown: true,
+      tabAutoGenerateTitle: false
     })
     window.__store?.setState({ settings })
   })

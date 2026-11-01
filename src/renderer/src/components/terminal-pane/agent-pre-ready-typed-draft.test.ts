@@ -78,7 +78,14 @@ vi.mock('@/lib/terminal-worktree-route', async (importOriginal) => {
     ) =>
       pairedRoute.runtimeEnvironmentId
         ? { runtimeEnvironmentId: pairedRoute.runtimeEnvironmentId }
-        : actual.resolveTerminalWorktreeRoute(...args)
+        : actual.resolveTerminalWorktreeRoute(...args),
+    // aidev02: panes spawn through this wrapper, which defers to the route above off the floating terminal.
+    resolveTerminalPaneSpawnRoute: (
+      ...args: Parameters<typeof actual.resolveTerminalPaneSpawnRoute>
+    ) =>
+      pairedRoute.runtimeEnvironmentId
+        ? { runtimeEnvironmentId: pairedRoute.runtimeEnvironmentId }
+        : actual.resolveTerminalPaneSpawnRoute(...args)
   }
 })
 

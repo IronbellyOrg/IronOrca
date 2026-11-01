@@ -612,6 +612,73 @@ export function registerPtyConnectionRemoteRuntimeAttachTests(): void {
       expect(createRemoteRuntimePtyTransport).not.toHaveBeenCalled()
     })
 
+    it('routes the web client floating terminal to the paired runtime before any catalog or preference is loaded', async () => {
+      const { connectPanePty } = await import('./pty-connection')
+      const { setWebFloatingRuntimeOwnerResolver } = await import('@/lib/terminal-worktree-route')
+      const { createRemoteRuntimePtyTransport } = await import('./remote-runtime-pty-transport')
+      const { createIpcPtyTransport } = await import('./pty-transport')
+      const transport = createMockTransport()
+      transportFactoryQueue.push(transport)
+      // Web-realistic state: pairing leaves the settings preference null, and the runtimeEnvironments
+      // slice is still empty when the pane first connects (it fills from an async list()).
+      mockStoreState = {
+        ...mockStoreState,
+        tabsByWorktree: { 'global-floating-terminal': [{ id: 'tab-1', ptyId: null }] },
+        runtimeEnvironments: [],
+        settings: { ...mockStoreState.settings, activeRuntimeEnvironmentId: null }
+      } as StoreState
+      setWebFloatingRuntimeOwnerResolver(() => 'env-web')
+      try {
+        connectPanePty(
+          createPane(1) as never,
+          createManager(1) as never,
+          createDeps({
+            worktreeId: 'global-floating-terminal',
+            cwd: '/home/coder/workspaces'
+          }) as never
+        )
+
+        expect(createRemoteRuntimePtyTransport).toHaveBeenCalledWith(
+          'env-web',
+          expect.objectContaining({
+            worktreeId: 'global-floating-terminal',
+            cwd: '/home/coder/workspaces'
+          })
+        )
+        expect(createIpcPtyTransport).not.toHaveBeenCalled()
+      } finally {
+        setWebFloatingRuntimeOwnerResolver(null)
+      }
+    })
+
+    it('keeps the floating terminal local when the web owner resolver finds no environment', async () => {
+      const { connectPanePty } = await import('./pty-connection')
+      const { setWebFloatingRuntimeOwnerResolver } = await import('@/lib/terminal-worktree-route')
+      const { createRemoteRuntimePtyTransport } = await import('./remote-runtime-pty-transport')
+      const { createIpcPtyTransport } = await import('./pty-transport')
+      const transport = createMockTransport()
+      transportFactoryQueue.push(transport)
+      mockStoreState = {
+        ...mockStoreState,
+        tabsByWorktree: { 'global-floating-terminal': [{ id: 'tab-1', ptyId: null }] },
+        runtimeEnvironments: [],
+        settings: { ...mockStoreState.settings, activeRuntimeEnvironmentId: null }
+      } as StoreState
+      setWebFloatingRuntimeOwnerResolver(() => null)
+      try {
+        connectPanePty(
+          createPane(1) as never,
+          createManager(1) as never,
+          createDeps({ worktreeId: 'global-floating-terminal' }) as never
+        )
+
+        expect(createIpcPtyTransport).toHaveBeenCalled()
+        expect(createRemoteRuntimePtyTransport).not.toHaveBeenCalled()
+      } finally {
+        setWebFloatingRuntimeOwnerResolver(null)
+      }
+    })
+
     it('routes a HUB-owned SSH PTY wake hint through the HUB without direct SSH', async () => {
       const { connectPanePty } = await import('./pty-connection')
       const { createRemoteRuntimePtyTransport } = await import('./remote-runtime-pty-transport')

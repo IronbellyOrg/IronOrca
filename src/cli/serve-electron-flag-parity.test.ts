@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { getServeOptions } from '../main/startup/serve-options'
 import { normalizeServeModeArgv } from '../main/startup/serve-mode-argv'
 import { BOOLEAN_FLAGS } from './args'
 import { SERVE_COMMAND_SPECS } from './specs/serve'
@@ -24,6 +25,19 @@ const translatedFlags = [...new Set(serveSpec?.allowedFlags ?? [])].filter(
 )
 
 describe('serve flag parity between the CLI spec and the Electron argv rewrite', () => {
+  it.each(['serve', '--serve'])('keeps validated bind values through direct %s entry', (mode) => {
+    for (const host of ['127.0.0.1', '::1']) {
+      for (const args of [['--bind', host], [`--bind=${host}`]]) {
+        const normalized = normalizeServeModeArgv(['/opt/orca/orca-ide', mode, ...args])
+        expect(getServeOptions(normalized).bindHost).toBe(host)
+      }
+    }
+    for (const args of [['--bind'], ['--bind='], ['--bind=localhost'], ['--bnd=127.0.0.1']]) {
+      expect(() => getServeOptions(normalizeServeModeArgv(['app', mode, ...args]))).toThrow()
+    }
+    expect(getServeOptions(normalizeServeModeArgv(['app', mode]))).not.toHaveProperty('bindHost')
+  })
+
   it('has a serve spec to compare against', () => {
     expect(translatedFlags.length).toBeGreaterThan(0)
   })

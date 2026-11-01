@@ -10,6 +10,7 @@ import {
 } from '@/runtime/runtime-file-mutation-client'
 import { statRuntimePath } from '@/runtime/runtime-file-metadata-client'
 import { selectWorktreesByRepo } from '../../../workspace-record-selectors'
+import { floatingNotesFileAddress } from '@/runtime/runtime-floating-notes-file-address'
 
 export function deleteUntouchedUntitledFile(getState: () => AppState, file: OpenFile): void {
   const hasRetainedView = () =>
@@ -30,6 +31,13 @@ export function deleteUntouchedUntitledFile(getState: () => AppState, file: Open
   void statRuntimePath(context, file.filePath)
     .then(async (stat) => {
       if (stat.size !== 0 || hasRetainedView()) {
+        return
+      }
+      // aidev02: a floating note lives in the host's notes folder, which only its `path:` address
+      // reaches; the worktree-relative delete would resolve the bare name in the floating terminal
+      // directory and remove an unrelated file there.
+      if (floatingNotesFileAddress(file.worktreeId, file.filePath)) {
+        await deleteRuntimePath(context, file.filePath)
         return
       }
       const deletedRemotely = await deleteRuntimeRelativePath(context, file.relativePath)

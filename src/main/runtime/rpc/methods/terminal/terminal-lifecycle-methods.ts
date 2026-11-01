@@ -9,6 +9,10 @@ import {
 } from '../../../../../shared/runtime-navigation'
 import { withTerminalCloseAttribution } from '../../terminal-close-attribution'
 import {
+  isFloatingTerminalSelector,
+  resolveFloatingLaunchCwd
+} from '../../../runtime-server-environment-commands'
+import {
   AgentTeamsPrepareLaunch,
   AgentTeamsTmuxCompat,
   TerminalCreateParams,
@@ -84,11 +88,18 @@ export const TERMINAL_LIFECYCLE_METHODS = [
         params.worktree,
         params.clientMutationId,
         params.reconcileExisting === true,
-        (canonicalWorktreeSelector, preAllocatedHandle) =>
-          runtime.createTerminal(canonicalWorktreeSelector, {
+        async (canonicalWorktreeSelector, preAllocatedHandle) => {
+          // Why only the floating sentinel: it has no worktree root to anchor a relative cwd,
+          // and it is the one scope whose launch path is the server's floating directory. Any
+          // other selector keeps its own root; an unreadable/missing dir keeps that default.
+          const floatingCwd = isFloatingTerminalSelector(canonicalWorktreeSelector)
+            ? await resolveFloatingLaunchCwd(params.cwd)
+            : undefined
+          return runtime.createTerminal(canonicalWorktreeSelector, {
             // A CLI command (typed or an agent's) or a window's create is the user's act.
             wslUserAct: true,
             command: params.command,
+            ...(floatingCwd ? { cwd: floatingCwd } : {}),
             terminalImageViewerSupported: terminalImageViewerSupported(context),
             ...(params.shell ? { shellOverride: params.shell } : {}),
             startupCommandDelivery: params.startupCommandDelivery,
@@ -118,7 +129,8 @@ export const TERMINAL_LIFECYCLE_METHODS = [
             leafId: params.leafId,
             ...(params.spawnIntent ? { spawnIntent: params.spawnIntent } : {}),
             ...(preAllocatedHandle ? { preAllocatedHandle } : {})
-          }),
+          })
+        },
         { wslUserAct: true }
       )
       // Switch point. A CLI start is work in the workspace; a window or phone tab is a person opening one.

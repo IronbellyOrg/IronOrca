@@ -217,6 +217,9 @@ describe('SidebarNav', () => {
   })
 
   it('keeps the Agent Dashboard row unmounted while its experiment is off', async () => {
+    setSidebarState({
+      settings: { ...getDefaultSettings('/tmp'), experimentalAgentDashboardPopout: false }
+    })
     const container = await renderSidebarNav()
 
     expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()

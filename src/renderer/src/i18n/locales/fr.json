@@ -5730,7 +5730,7 @@
           "69f5b5380d": "Clonage...",
           "cloneOnHostDescription": "Saisissez l'URL Git et choisissez où le cloner sur {{value0}}.",
           "cloneParentFolder": "Dossier parent",
-          "remoteCloneParentPlaceholder": "/home/user/projects"
+          "remoteCloneParentPlaceholder": "/home/coder/workspaces"
         },
         "AutoRenameFailedDialog": {
           "aed1623b1e": "Fermer",
@@ -5745,7 +5745,7 @@
           "632b456b1b": "Modifier",
           "afaf54f245": "Modifier le dossier parent",
           "f520f83a97": "Parcourir le système de fichiers de l'hôte",
-          "2a20a603a3": "/home/user/projects",
+          "2a20a603a3": "/home/coder/workspaces",
           "134e37f711": "Emplacement",
           "b589b77997": "Naviguez jusqu'à un répertoire et cliquez sur Sélectionner pour le choisir."
         },

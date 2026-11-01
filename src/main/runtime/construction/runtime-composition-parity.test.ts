@@ -118,6 +118,19 @@ const DECLARED_HOST_DIFFERENCES: readonly DeclaredDifference[] = [
     missingOn: 'orcad',
     reason: 'It notifies a desktop window.'
   },
+  // aidev02 (loopback-bind.patch): Electron serve also takes a pinned bind host, so neither root
+  // lacks rpc-option:pinnedBindHost. The AIDev02 template runs serve on Electron
+  // (ORCA_SERVE_RUNTIME=electron), where mobile-pairing.patch adds the two options below.
+  {
+    wiring: 'rpc-option:browserMobilePairingAddress',
+    missingOn: 'orcad',
+    reason: 'aidev02 browser-issued mobile pairing runs on the Electron serve host only.'
+  },
+  {
+    wiring: 'rpc-option:nativeMobilePairingFile',
+    missingOn: 'orcad',
+    reason: 'aidev02 native (tailnet) mobile pairing route runs on the Electron serve host only.'
+  },
   {
     wiring: 'host:setMainHttpClient',
     missingOn: 'orcad',

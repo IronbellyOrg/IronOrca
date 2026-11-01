@@ -122,6 +122,18 @@ export function savedChatUiWithTerminalDefaultView(settings: unknown): boolean {
   )
 }
 
+/** Chat UI was on and the retired Default view opened new agent tabs in chat (aidev02). */
+export function savedChatUiWithChatDefaultView(settings: unknown): boolean {
+  return (
+    typeof settings === 'object' &&
+    settings !== null &&
+    'experimentalNativeChat' in settings &&
+    settings.experimentalNativeChat === true &&
+    'openAgentTabsInChatByDefault' in settings &&
+    settings.openAgentTabsInChatByDefault === true
+  )
+}
+
 export function migrateTerminalScrollbackRows(settings: unknown): {
   rows: number
   needsSave: boolean

@@ -76,7 +76,8 @@ describe('Store', () => {
     expect(settings.theme).toBe('system')
     expect(settings.appIcon).toBe('classic')
     expect(settings.appFontFamily).toBe('Geist')
-    expect(settings.editorAutoSave).toBe(false)
+    // aidev02 new-install default (defaults.patch).
+    expect(settings.editorAutoSave).toBe(true)
     expect(settings.editorAutoSaveDelayMs).toBe(1000)
     expect(settings.terminalFontSize).toBe(14)
     expect(settings.terminalFontWeight).toBe(500)
@@ -97,8 +98,9 @@ describe('Store', () => {
     ])
     expect(settings.experimentalActivity).toBe(false)
     expect(settings.experimentalActivityDefaultedOffForAllUsers).toBe(true)
-    expect(settings.experimentalTerminalAttention).toBe(false)
-    expect(settings.experimentalNewWorktreeCardStyle).toBe(false)
+    // aidev02 new-install defaults (defaults.patch).
+    expect(settings.experimentalTerminalAttention).toBe(true)
+    expect(settings.experimentalNewWorktreeCardStyle).toBe(true)
     expect(settings.floatingTerminalEnabled).toBe(true)
     expect(settings.floatingTerminalDefaultedForAllUsers).toBe(true)
     expect(settings.notifications.customSoundPath).toBeNull()
@@ -400,7 +402,8 @@ describe('Store', () => {
     expect(store.getUI().setupGuideSidebarDismissed).toBe(false)
   })
 
-  it('keeps new worktree card style off while onboarding is open', async () => {
+  // aidev02: the new card style defaults on (defaults.patch); an unsaved choice follows it.
+  it('applies the new worktree card style default while onboarding is open', async () => {
     writeDataFile({
       settings: {},
       onboarding: {
@@ -415,7 +418,7 @@ describe('Store', () => {
 
     const store = await createStore()
 
-    expect(store.getSettings().experimentalNewWorktreeCardStyle).toBe(false)
+    expect(store.getSettings().experimentalNewWorktreeCardStyle).toBe(true)
   })
 
   it('preserves explicit new worktree card style opt-out while onboarding is open', async () => {
@@ -452,7 +455,8 @@ describe('Store', () => {
     expect(store.getSettings().experimentalNewWorktreeCardStyle).toBe(true)
   })
 
-  it('keeps new worktree card style off for existing users backfilled as completed', async () => {
+  // aidev02: the new card style defaults on (defaults.patch); an unsaved choice follows it.
+  it('applies the new worktree card style default for existing users backfilled as completed', async () => {
     writeDataFile({
       schemaVersion: 1,
       settings: {},
@@ -462,7 +466,7 @@ describe('Store', () => {
     const store = await createStore()
 
     expect(store.getOnboarding().closedAt).not.toBeNull()
-    expect(store.getSettings().experimentalNewWorktreeCardStyle).toBe(false)
+    expect(store.getSettings().experimentalNewWorktreeCardStyle).toBe(true)
   })
 
   it('treats persisted false setup guide sidebar dismissal as stale once onboarding is closed', async () => {

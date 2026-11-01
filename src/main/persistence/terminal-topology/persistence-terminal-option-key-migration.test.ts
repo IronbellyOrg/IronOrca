@@ -81,10 +81,11 @@ describe('Store', () => {
   })
 
   it('migrates inherited right-click paste to each platform default once', async () => {
+    // aidev02 turns right-click paste on for every platform (defaults.patch).
     for (const [platform, expected] of [
       ['win32', true],
-      ['darwin', false],
-      ['linux', false]
+      ['darwin', true],
+      ['linux', true]
     ] as const) {
       await withPlatform(platform, async () => {
         writeDataFile({

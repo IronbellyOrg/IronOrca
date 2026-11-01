@@ -79,6 +79,8 @@ beforeEach(() => {
     settings: {
       ...getDefaultSettings('/test'),
       experimentalNativeChat: true,
+      // Upstream's baseline: no saved per-agent choices (aidev02 saves terminal-first ones).
+      nativeChatProviders: {},
       defaultTuiAgent: 'claude'
     }
   })
@@ -145,6 +147,7 @@ it('submits the untouched refusal-aware OpenCode CLI instead of the registered c
       settings: {
         ...getDefaultSettings('/test'),
         experimentalNativeChat: true,
+        nativeChatProviders: {},
         defaultTuiAgent: 'opencode'
       }
     })

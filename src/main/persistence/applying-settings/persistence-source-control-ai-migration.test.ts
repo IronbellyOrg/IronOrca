@@ -90,7 +90,8 @@ describe('Store', () => {
     expect(ui.rightSidebarOpen).toBe(true)
     expect(ui.rightSidebarTab).toBe('explorer')
     expect(store.getSettings().theme).toBe('dark')
-    expect(store.getSettings().editorAutoSave).toBe(false)
+    // aidev02: auto-save defaults on.
+    expect(store.getSettings().editorAutoSave).toBe(true)
     expect(store.getSettings().editorAutoSaveDelayMs).toBe(1000)
     expect(store.getSettings().refreshLocalBaseRefOnWorktreeCreate).toBe(false)
     expect(store.getSettings().rightSidebarOpenByDefault).toBe(true)
@@ -102,7 +103,8 @@ describe('Store', () => {
     expect(store.getSettings().visibleTaskProviders).toEqual(['github', 'gitlab', 'linear', 'jira'])
     expect(store.getSettings().experimentalActivity).toBe(false)
     expect(store.getSettings().experimentalActivityDefaultedOffForAllUsers).toBe(true)
-    expect(store.getSettings().experimentalTerminalAttention).toBe(false)
+    // aidev02 new-install default (defaults.patch).
+    expect(store.getSettings().experimentalTerminalAttention).toBe(true)
     expect(store.getSettings().notifications.customSoundPath).toBeNull()
     expect(store.getRepos()).toHaveLength(1)
   })

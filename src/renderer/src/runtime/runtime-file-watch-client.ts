@@ -4,6 +4,7 @@ import type { RuntimeFileOperationArgs } from './runtime-file-client-types'
 import { callRuntimeRpc } from './runtime-rpc-client'
 import { unwrapRuntimeRpcResult } from './runtime-rpc-result'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
+import { floatingNotesRootSelector } from './runtime-floating-notes-file-address'
 
 type RuntimeFileWatchEvent =
   | { type: 'starting'; subscriptionId: string }
@@ -112,7 +113,12 @@ function createSharedRuntimeFileWatch(
         selector: target.environmentId,
         method: 'files.watch',
         // Why: this client coalesces watcher reads, so it can take the faster host cadence.
-        params: { worktree: toRuntimeWorktreeSelector(worktreeId), batchCadence: 'interval' },
+        params: {
+          worktree:
+            floatingNotesRootSelector(worktreeId, worktreePath) ??
+            toRuntimeWorktreeSelector(worktreeId),
+          batchCadence: 'interval'
+        },
         timeoutMs: 15_000
       },
       {

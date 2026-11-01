@@ -293,6 +293,126 @@ describe('captureTerminalShutdownLayout', () => {
     expect(serialize.mock.calls.length).toBeLessThanOrEqual(5)
   })
 
+  // aidev02: the 25,000-row scrollback default must not make a park serialize rows the cap drops.
+  function textBuffer(rows: readonly string[]): {
+    length: number
+    getLine(y: number): { isWrapped: boolean; translateToString(): string } | undefined
+  } {
+    return {
+      length: rows.length,
+      getLine: (y) =>
+        rows[y] === undefined ? undefined : { isWrapped: false, translateToString: () => rows[y]! }
+    }
+  }
+
+  it('starts a 25,000-row capture at the tail the byte cap can keep', async () => {
+    const { captureTerminalShutdownLayout } = await import('./terminal-shutdown-layout-capture')
+    const DENSE_ROW = 'x'.repeat(100)
+    const terminal = {
+      ...mockTerminal(25_000),
+      buffer: {
+        active: { cursorX: 0, cursorY: 0 },
+        normal: textBuffer(Array.from({ length: 25_024 }, () => DENSE_ROW))
+      }
+    }
+    const serialize = vi.fn((options?: { scrollback?: number }) =>
+      `${DENSE_ROW}\r\n`.repeat((options?.scrollback ?? 0) + 24)
+    )
+    const pane = { id: 1, leafId: LEAF_ID, terminal, serializeAddon: { serialize } }
+
+    const layout = captureTerminalShutdownLayout({
+      manager: { getPanes: () => [pane] } as never,
+      paneTransports: new Map([[1, { getPtyId: vi.fn(() => 'pty-1') }]]),
+      existingLayout: SINGLE_PANE_LAYOUT
+    })
+
+    // 102 bytes per row: 90% of the cap holds ~4,600 rows, so one pass serializes that tail, not
+    // 25,000 rows followed by fit probes.
+    expect(serialize).toHaveBeenCalledOnce()
+    expect(serialize.mock.calls[0]?.[0]?.scrollback ?? 0).toBeLessThan(4_700)
+    const bytes = getUtf8ByteLength(layout.buffersByLeafId?.[LEAF_ID] ?? '')
+    expect(bytes).toBeLessThanOrEqual(TERMINAL_SCROLLBACK_SESSION_BUFFER_BYTE_LIMIT)
+    expect(bytes).toBeGreaterThan(TERMINAL_SCROLLBACK_SESSION_BUFFER_BYTE_LIMIT * 0.85)
+  })
+
+  it('fits styled rows, whose escapes outgrow their text, in one pass', async () => {
+    const { captureTerminalShutdownLayout } = await import('./terminal-shutdown-layout-capture')
+    const TEXT = 'x'.repeat(100)
+    const terminal = {
+      ...mockTerminal(25_000),
+      buffer: {
+        active: { cursorX: 0, cursorY: 0 },
+        normal: textBuffer(Array.from({ length: 25_024 }, () => TEXT))
+      }
+    }
+    // 110 serialized bytes per 102 counted: a tail sized to the full cap would overflow it.
+    const serialize = vi.fn((options?: { scrollback?: number }) =>
+      `\x1b[1m${TEXT}\x1b[0m\r\n`.repeat((options?.scrollback ?? 0) + 24)
+    )
+    const pane = { id: 1, leafId: LEAF_ID, terminal, serializeAddon: { serialize } }
+
+    const layout = captureTerminalShutdownLayout({
+      manager: { getPanes: () => [pane] } as never,
+      paneTransports: new Map([[1, { getPtyId: vi.fn(() => 'pty-1') }]]),
+      existingLayout: SINGLE_PANE_LAYOUT
+    })
+
+    expect(serialize).toHaveBeenCalledOnce()
+    expect(getUtf8ByteLength(layout.buffersByLeafId?.[LEAF_ID] ?? '')).toBeLessThanOrEqual(
+      TERMINAL_SCROLLBACK_SESSION_BUFFER_BYTE_LIMIT
+    )
+  })
+
+  it('keeps the full scrollback when its text fits the byte cap', async () => {
+    const { captureTerminalShutdownLayout } = await import('./terminal-shutdown-layout-capture')
+    const terminal = {
+      ...mockTerminal(25_000),
+      buffer: {
+        active: { cursorX: 0, cursorY: 0 },
+        normal: textBuffer(Array.from({ length: 25_024 }, () => '$ ls'))
+      }
+    }
+    const serialize = vi.fn(() => 'short history')
+    const pane = { id: 1, leafId: LEAF_ID, terminal, serializeAddon: { serialize } }
+
+    captureTerminalShutdownLayout({
+      manager: { getPanes: () => [pane] } as never,
+      paneTransports: new Map([[1, { getPtyId: vi.fn(() => 'pty-1') }]]),
+      existingLayout: SINGLE_PANE_LAYOUT
+    })
+
+    expect(serialize).toHaveBeenCalledExactlyOnceWith({ scrollback: 25_000 })
+  })
+
+  it('keeps sparse rows whose blank cells serialize as short cursor moves', async () => {
+    const { captureTerminalShutdownLayout } = await import('./terminal-shutdown-layout-capture')
+    // An X in column 73: 73 characters of text per row, ~8 bytes once blanks collapse.
+    const SPARSE = `${' '.repeat(72)}X`
+    const terminal = {
+      ...mockTerminal(25_000),
+      buffer: {
+        active: { cursorX: 0, cursorY: 0 },
+        normal: textBuffer(Array.from({ length: 25_024 }, () => SPARSE))
+      }
+    }
+    const serialize = vi.fn((options?: { scrollback?: number }) =>
+      '\x1b[72CX\r\n'.repeat((options?.scrollback ?? 0) + 24)
+    )
+    const pane = { id: 1, leafId: LEAF_ID, terminal, serializeAddon: { serialize } }
+
+    const layout = captureTerminalShutdownLayout({
+      manager: { getPanes: () => [pane] } as never,
+      paneTransports: new Map([[1, { getPtyId: vi.fn(() => 'pty-1') }]]),
+      existingLayout: SINGLE_PANE_LAYOUT
+    })
+
+    // ~200 KB fits the 512 KB cap, so the whole history is kept in one pass.
+    expect(serialize).toHaveBeenCalledExactlyOnceWith({ scrollback: 25_000 })
+    expect(getUtf8ByteLength(layout.buffersByLeafId?.[LEAF_ID] ?? '')).toBeLessThanOrEqual(
+      TERMINAL_SCROLLBACK_SESSION_BUFFER_BYTE_LIMIT
+    )
+  })
+
   it('does not preserve prior scrollback buffers or refs for a cleared leaf', async () => {
     const { captureTerminalShutdownLayout } = await import('./terminal-shutdown-layout-capture')
     const pane = {

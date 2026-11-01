@@ -18,11 +18,8 @@ export async function setPaneTitleFromTerminalMenu(page: Page, title: string): P
 }
 
 export async function openTerminalContextMenu(page: Page): Promise<void> {
-  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = (await page.evaluate(() =>
-    navigator.userAgent.includes('Windows')
-  ))
-    ? ['Control']
-    : []
+  // aidev02: plain right-click pastes on every platform, so Control+right-click opens the menu.
+  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = ['Control']
   const isMac = await page.evaluate(() => navigator.userAgent.includes('Mac'))
   await page
     .locator('.xterm:visible')

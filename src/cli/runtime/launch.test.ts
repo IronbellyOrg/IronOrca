@@ -26,6 +26,8 @@ vi.mock('child_process', () => ({
 
 import { launchOrcaApp, serveOrcaApp } from './launch'
 import { getExecutableAppArgs, stripElectronRunAsNode } from './orca-app-executable'
+import * as macBundle from './mac-app-update-bundle'
+import { getServeOptions } from '../../main/startup/serve-options'
 
 class FakeChildProcess extends EventEmitter {
   stdout = new EventEmitter()
@@ -196,6 +198,45 @@ describe('serveOrcaApp', () => {
       restoreEnv('ORCA_E2E_USER_DATA_DIR', previousUserData)
       restoreEnv('ORCA_E2E_HOME_DIR', previousHome)
     }
+  })
+
+  it('retains separate bind argv through the real supervisor respawn on every test platform', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'orca-serve-bind-'))
+    temporaryDirectories.push(root)
+    process.env.ORCA_USER_DATA_PATH = root
+    vi.spyOn(macBundle, 'getMacAppBundlePath').mockReturnValue('/fixture/Orca.app')
+    vi.spyOn(macBundle, 'waitForMacBundleVersion').mockResolvedValue(true)
+    const first = new FakeChildProcess()
+    const replacement = new FakeChildProcess()
+    replacement.pid = 4102
+    spawnMock.mockReturnValueOnce(first).mockReturnValueOnce(replacement)
+    const result = serveOrcaApp({ bindHost: '127.0.0.1', json: true })
+    const firstArgs = [...spawnMock.mock.calls[0][1]] as string[]
+    expect(firstArgs).toContain('--serve-bind')
+    expect(firstArgs[firstArgs.indexOf('--serve-bind') + 1]).toBe('127.0.0.1')
+    const handoffPath = spawnMock.mock.calls[0][2].env.ORCA_SERVE_UPDATE_HANDOFF_PATH as string
+    await writeFile(
+      handoffPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        phase: 'install-requested',
+        fromVersion: '1.0.51',
+        targetVersion: '1.0.61',
+        servingPid: first.pid
+      })
+    )
+    first.emit('exit', 0, null)
+    await vi.waitFor(() => expect(spawnMock).toHaveBeenCalledTimes(2))
+    expect(spawnMock.mock.calls[1][1]).toEqual(firstArgs)
+    expect(getServeOptions(['app', ...spawnMock.mock.calls[1][1]]).bindHost).toBe('127.0.0.1')
+    replacement.emit('message', {
+      type: 'orca:serve-ready',
+      version: '1.0.61',
+      runtimeId: 'fixture'
+    })
+    await vi.waitFor(async () => expect(await readServeUpdateHandoff(handoffPath)).toBeNull())
+    replacement.emit('exit', 0, null)
+    await expect(result).resolves.toBe(0)
   })
 
   it.runIf(process.platform === 'darwin')(

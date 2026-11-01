@@ -66,7 +66,11 @@ export function mountSourceDialog(
     ...getDefaultSettings('/tmp/fc1-action'),
     defaultTuiAgent: 'claude' as const,
     experimentalNativeChat: true,
-    agentPermissionDefault: 'own' as const
+    agentPermissionDefault: 'own' as const,
+    // Upstream's baseline: no saved per-agent chat choices and no disabled agents (aidev02 saves
+    // terminal-first choices and disables Auggie for new installs).
+    nativeChatProviders: {},
+    disabledTuiAgents: []
   }
   settings.sourceControlAi!.actions = { resolveConflicts: global }
   const repo = { ...TEST_REPO, sourceControlAi: { actionOverrides: { resolveConflicts: own } } }
@@ -143,7 +147,14 @@ export function renderDialog(
   capable = true,
   initialRecipe?: SourceControlActionRecipe
 ): RenderedSourceDialog {
-  const settings = { ...getDefaultSettings('/tmp/pr-3'), defaultTuiAgent: 'claude' as const }
+  const settings = {
+    ...getDefaultSettings('/tmp/pr-3'),
+    defaultTuiAgent: 'claude' as const,
+    // Upstream's baseline: no saved per-agent chat choices and no disabled agents (aidev02 saves
+    // terminal-first choices and disables Auggie for new installs).
+    nativeChatProviders: {},
+    disabledTuiAgents: []
+  }
   const launchPreferences = normalizeSourceControlActionRecipe(
     { launchPreferences: { agentId: 'codex', model: 'chosen' } },
     true

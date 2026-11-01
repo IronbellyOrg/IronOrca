@@ -71,8 +71,8 @@ export async function bootstrapRestoredLaunch(
 }
 
 export async function setPaneTitleFromTerminalMenu(page: Page, title: string): Promise<void> {
-  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] =
-    process.platform === 'win32' ? ['Control'] : []
+  // aidev02: plain right-click pastes on every platform, so Control+right-click opens the menu.
+  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = ['Control']
   await page
     .locator('.xterm:visible')
     .first()

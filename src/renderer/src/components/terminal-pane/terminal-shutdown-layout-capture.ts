@@ -85,6 +85,50 @@ function serializeWithinSessionScrollbackByteLimit(
   return best ?? ''
 }
 
+type ScrollbackTextBuffer = {
+  length: number
+  getLine(
+    y: number
+  ): { isWrapped: boolean; translateToString(trimRight: boolean): string } | undefined
+}
+
+// Why headroom: serialized rows carry style escapes beyond their text, so a tail sized to the full
+// cap overflows and pays up to MAX_SCROLLBACK_FIT_PROBES more serializes; 90% fits in one pass.
+const SCROLLBACK_TEXT_BUDGET_BYTES = Math.floor(MAX_BUFFER_BYTES * 0.9)
+
+// Whitespace may be a never-written cell, which the serializer collapses into a short cursor move.
+const VISIBLE_CHARACTERS = /\S/g
+
+/** Scrollback rows worth serializing: the longest tail whose visible text fits 90% of the byte cap.
+ *  aidev02: our 25,000-row scrollback (upstream 5,000) made every park serialize five times the rows
+ *  the cap can keep, then probe down, enough to stall the renderer for over a second. A row
+ *  serializes to at least its visible characters plus its line break (blank cells may collapse to
+ *  nothing), so no longer tail can fit; for plain output this tail fits in one pass, as a full
+ *  5,000-row buffer does upstream. */
+function scrollbackRowsThatCanFit(
+  buffer: ScrollbackTextBuffer | undefined,
+  viewportRows: number,
+  scrollback: number
+): number {
+  if (!buffer) {
+    return scrollback
+  }
+  let bytes = 0
+  let rows = 0
+  for (let y = buffer.length - 1; y >= 0; y -= 1) {
+    const line = buffer.getLine(y)
+    const visible = line?.translateToString(true).match(VISIBLE_CHARACTERS)?.length ?? 0
+    bytes += visible + (line?.isWrapped ? 0 : 2)
+    rows += 1
+    // Why +2: the topmost counted row has no break before it in the serialized text.
+    if (bytes > SCROLLBACK_TEXT_BUDGET_BYTES + 2) {
+      // The row just counted overflowed; the tail below it is the longest that can fit.
+      return Math.min(scrollback, Math.max(1, rows - 1 - viewportRows))
+    }
+  }
+  return scrollback
+}
+
 export function captureTerminalShutdownLayout({
   manager,
   paneTransports,
@@ -102,7 +146,11 @@ export function captureTerminalShutdownLayout({
         // Drain throttled output before capture so hidden/nonfocused panes retain queued bytes.
         flushTerminalOutput(pane.terminal)
         const leafId = pane.leafId
-        let scrollback = pane.terminal.options.scrollback ?? 10_000
+        let scrollback = scrollbackRowsThatCanFit(
+          pane.terminal.buffer.normal,
+          pane.terminal.rows,
+          pane.terminal.options.scrollback ?? 10_000
+        )
         // Absolute cursor restore avoids SerializeAddon’s one-column-short relative restore after wrap-pending rows.
         let serialized = serializeWithAbsoluteCursor(pane.serializeAddon, pane.terminal, {
           scrollback

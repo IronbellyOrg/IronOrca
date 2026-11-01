@@ -217,11 +217,17 @@ export default function MobilePage(): React.JSX.Element {
 
   const beforeCustomAddressChange = useCallback(
     async (address: string): Promise<boolean> => {
-      if (!canMintMobilePairingOffer({ connectionMode, signedIn })) {
+      if (
+        !window.api.mobile.listPairingEndpoints &&
+        !canMintMobilePairingOffer({ connectionMode, signedIn })
+      ) {
         return true
       }
       try {
         const result = await window.api.mobile.getPairingQR({ address, connectionMode })
+        if (!result.available && result.guidance) {
+          toast.error(result.guidance)
+        }
         return result.available && result.qrDataUrl !== null
       } catch {
         return false

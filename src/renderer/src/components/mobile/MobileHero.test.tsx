@@ -34,7 +34,7 @@ vi.mock('../settings/MachineNameField', () => ({
   )
 }))
 
-import { HeroFlow, type StepIndex } from './MobileHero'
+import { HeroFlow, HeroPaired, type StepIndex } from './MobileHero'
 import { MobileHeroPairingStep } from './MobileHeroPairingStep'
 
 class MockResizeObserver {
@@ -109,6 +109,24 @@ describe('HeroFlow height', () => {
       />
     )
   }
+
+  it('labels an unconnected grant as pending and exposes its revoke action', async () => {
+    const onRevoke = vi.fn()
+    render(
+      <HeroPaired
+        devices={[{ deviceId: 'pending', name: 'Pending phone', pairedAt: 1, lastSeenAt: 0 }]}
+        onPairAnother={vi.fn()}
+        onRevoke={onRevoke}
+        revokingDeviceIds={[]}
+      />
+    )
+    expect(
+      screen.getByText(`Pending — not connected ${new Date(1).toLocaleDateString()}`)
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading')).toHaveTextContent('Manage mobile pairings.')
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Revoke {{value0}}' }))
+    expect(onRevoke).toHaveBeenCalledWith('pending')
+  })
 
   it('sizes to the active step and updates when the taller pairing step opens', () => {
     const { rerender } = renderFlow(0)

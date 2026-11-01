@@ -85,6 +85,9 @@ export const FileDirRead = FileTreePath.extend({
   limit: z.number().int().positive().max(FILE_READ_DIR_MAX_PAGE_ENTRIES).optional()
 })
 
+// Web floating workspace: the server's app-owned directory for floating markdown notes.
+export const FloatingMarkdownDirectory = z.object({}).optional().default({})
+
 export const ServerDirectoryBrowse = z.object({
   path: z
     .unknown()

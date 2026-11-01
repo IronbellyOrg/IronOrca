@@ -135,6 +135,7 @@ describe('AddRepoDialogStepContent nested imports', () => {
 
     expect(html).toContain('Create a new project')
     expect(html).toContain('host folder not selected')
+    expect(html).toContain('placeholder="/home/coder/workspaces"')
   })
 
   it('opens the host browser for a filled path that Windows did not hand over', () => {

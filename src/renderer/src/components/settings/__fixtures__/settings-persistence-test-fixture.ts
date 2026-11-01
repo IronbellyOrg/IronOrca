@@ -25,6 +25,10 @@ beforeEach(() => {
     settings: {
       ...getDefaultSettings('/synthetic'),
       experimentalNativeChat: true,
+      // Upstream's baseline: no saved per-agent chat choices and no disabled agents (aidev02
+      // saves terminal-first choices and disables Auggie for new installs).
+      nativeChatProviders: {},
+      disabledTuiAgents: [],
       sourceControlAi: normalizeSourceControlAiSettings({
         ...normalizeSourceControlAiSettings(undefined),
         enabled: false,

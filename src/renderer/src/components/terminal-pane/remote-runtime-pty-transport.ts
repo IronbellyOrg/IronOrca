@@ -46,6 +46,7 @@ import {
   SAVED_RESUME_ORIGIN_RUNTIME_CAPABILITY,
   TERMINAL_CREATE_IDEMPOTENCY_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
+import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
 import { agentResumeHostAuthorityCapability } from '../../runtime/agent-resume-host-authority-capability'
 import {
   isTerminalInputTooLargeWithDeferredMeasurement,
@@ -3505,9 +3506,14 @@ export function createRemoteRuntimePtyTransport(
               }
             })())
           : {}
+      // Read opts.cwd at connect: the pane assigns it after construction. Only the floating pane,
+      // which has no worktree root for the host to start from, sends it.
+      const floatingCwdToSend =
+        worktreeId === FLOATING_TERMINAL_WORKTREE_ID ? opts.cwd?.trim() : undefined
       const legacyCreateParams = {
         worktree: toRuntimeTerminalWorktreeSelector(worktreeId),
         clientMutationId: terminalCreateMutationId,
+        ...(floatingCwdToSend ? { cwd: floatingCwdToSend } : {}),
         ...(commandToSend !== undefined ? { command: commandToSend } : {}),
         ...(startupCommandDeliveryToSend !== undefined
           ? { startupCommandDelivery: startupCommandDeliveryToSend }

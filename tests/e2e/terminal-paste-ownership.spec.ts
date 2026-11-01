@@ -173,9 +173,9 @@ async function restoreClipboardReadTerminalBlurRepro(app: ElectronApplication): 
 }
 
 async function openTerminalContextMenu(page: Page): Promise<void> {
-  const isWindows = await page.evaluate(() => navigator.userAgent.includes('Windows'))
   const isMac = await page.evaluate(() => navigator.userAgent.includes('Mac'))
-  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = isMac || isWindows ? ['Control'] : []
+  // aidev02: plain right-click pastes on every platform, so Control+right-click opens the menu.
+  const modifiers: ('Alt' | 'Control' | 'Meta' | 'Shift')[] = ['Control']
   await page
     .locator('.xterm:visible')
     .first()

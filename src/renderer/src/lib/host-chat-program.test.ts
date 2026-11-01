@@ -45,7 +45,12 @@ beforeEach(() => {
   rpc.subscribe.mockReset().mockResolvedValue({ unsubscribe: vi.fn() })
   setLocalRuntimeCapabilitiesForTests(CAPS)
   useAppStore.setState({
-    settings: { ...getDefaultSettings('/tmp'), experimentalNativeChat: true },
+    // Upstream's baseline: no saved per-agent choices (aidev02 saves terminal-first ones).
+    settings: {
+      ...getDefaultSettings('/tmp'),
+      experimentalNativeChat: true,
+      nativeChatProviders: {}
+    },
     runtimeStatusByEnvironmentId: new Map([['B', status()]])
   })
 })
@@ -121,6 +126,7 @@ it('adapts only absent publication on older hosts and shares the saved Checks ga
   const local = { kind: 'git-worktree' } as const
   const settings = getDefaultSettings('/tmp')
   settings.experimentalNativeChat = true
+  settings.nativeChatProviders = {}
   settings.sourceControlAi = getDefaultSourceControlAiSettings()
   settings.sourceControlAi.actions = { fixChecks: { agentId: 'antigravity' } }
   useAppStore.setState({ settings, ensureDetectedAgents: async () => [] })

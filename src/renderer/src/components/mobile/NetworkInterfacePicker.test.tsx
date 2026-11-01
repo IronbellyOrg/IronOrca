@@ -1,10 +1,15 @@
 // @vitest-environment happy-dom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NetworkInterfacePicker } from './NetworkInterfacePicker'
+import { TooltipProvider } from '../ui/tooltip'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+  vi.clearAllMocks()
+})
 
 const noop = vi.fn()
 
@@ -22,11 +27,34 @@ function renderPicker(props: {
       onSelectedAddressChange={noop}
       onCustomAddressSelect={noop}
       onCustomAddressRemove={noop}
-    />
+    />,
+    { wrapper: TooltipProvider }
   )
 }
 
 describe('NetworkInterfacePicker', () => {
+  it.each(['owner', 'tailnet'])(
+    'offers a configured %s route separately from NIC discovery',
+    async (kind) => {
+      const address =
+        kind === 'tailnet' ? 'wss://workspace.pilot.ts.net/' : 'wss://owner.example.test/apps/orca/'
+      vi.stubGlobal('api', {
+        mobile: {
+          listPairingEndpoints: vi.fn().mockResolvedValue({
+            endpoints: [{ address, provenance: `configured-${kind}-route` }]
+          })
+        }
+      })
+      renderPicker({})
+      expect(screen.getByRole('status').textContent).toContain('not NIC discovery')
+      fireEvent.click(screen.getByRole('combobox'))
+      fireEvent.click(
+        await screen.findByRole('option', { name: new RegExp(`configured ${kind} route`) })
+      )
+      expect(noop).toHaveBeenCalledWith(address)
+    }
+  )
+
   it('does not claim there are no interfaces when unselected options exist', () => {
     renderPicker({ networkInterfaces: [{ name: 'docker0', address: '172.17.0.1' }] })
 

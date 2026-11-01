@@ -231,7 +231,7 @@
 1 src/renderer/src/lib/runtime-session-mirror-targets.ts
 1 src/renderer/src/lib/single-runtime-legacy-owner.ts
 1 src/renderer/src/lib/terminal-close-route.ts
-4 src/renderer/src/lib/terminal-worktree-route.ts # resolveTerminalPtyOwner: teardown, close and PTY identity read spawn's attribution (round 3 F8), which retired the deprecated resolver's readers
+7 src/renderer/src/lib/terminal-worktree-route.ts # resolveTerminalPtyOwner: teardown, close and PTY identity read spawn's attribution (round 3 F8), which retired the deprecated resolver's readers; +3 aidev02 floating workspace: the web client's floating session has no source row and routes to the paired runtime
 3 src/renderer/src/lib/unread-badge-count-selector.ts
 1 src/renderer/src/lib/web-runtime-worktree-terminal-after-wake.ts
 2 src/renderer/src/lib/workspace-browser-tab-open.ts
@@ -326,7 +326,8 @@
 1 src/renderer/src/store/terminals/terminal-tab-close-providers.ts
 1 src/renderer/src/web/preload-api/web-app-api.ts
 3 src/renderer/src/web/preload-api/web-preference-normalization.ts
-20 src/renderer/src/web/preload-api/web-preferences-store.ts
+5 src/renderer/src/web/preload-api/web-pr-bot-author-override.ts # aidev02: moved unchanged out of web-preferences-store.ts (max-lines)
+15 src/renderer/src/web/preload-api/web-preferences-store.ts
 13 src/renderer/src/web/preload-api/web-settings-api.ts
 9 src/renderer/src/web/preload-api/web-ui-api.ts
 3 src/renderer/src/web/preload-api/web-workspace-session-api.ts

@@ -238,6 +238,7 @@ import {
   FileSearch,
   FileTreePath,
   FileUnwatch,
+  FloatingMarkdownDirectory,
   ResolveTerminalPath,
   ServerDirectoryBrowse
 } from './files-params'
@@ -968,6 +969,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'files.createDirNoClobber': FileMutationOpen,
   'files.createFile': FileMutationOpen,
   'files.delete': FileDelete,
+  'files.floatingMarkdownDirectory': FloatingMarkdownDirectory,
   'files.list': WorktreeSelector,
   'files.listAll': FileListAll,
   'files.listMarkdownDocuments': WorktreeSelector,

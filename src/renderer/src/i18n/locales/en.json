@@ -5970,7 +5970,7 @@
           "69f5b5380d": "Cloning...",
           "cloneOnHostDescription": "Enter the Git URL and choose where to clone it on {{value0}}.",
           "cloneParentFolder": "Parent folder",
-          "remoteCloneParentPlaceholder": "/home/user/projects"
+          "remoteCloneParentPlaceholder": "/home/coder/workspaces"
         },
         "AutoRenameFailedDialog": {
           "dismissError": "Dismiss error",
@@ -5987,7 +5987,7 @@
           "632b456b1b": "Change",
           "afaf54f245": "Change parent folder",
           "f520f83a97": "Browse host filesystem",
-          "2a20a603a3": "/home/user/projects",
+          "2a20a603a3": "/home/coder/workspaces",
           "134e37f711": "Location",
           "b589b77997": "Navigate to a directory and click Select to choose it."
         },
@@ -7999,7 +7999,8 @@
           "41eb95f7f0": "Shows the floating workspace button and panel.",
           "5136813663": "Enable Floating Workspace",
           "37df688d6f": "Enable the floating workspace and choose where new tabs start.",
-          "1f67f39384": "Floating Workspace"
+          "1f67f39384": "Floating Workspace",
+          "web-directory-unavailable": "Choosing a different directory is not available in the web client yet."
         },
         "AgentCacheTimerSection": {
           "05de84a104": "1 hour",
@@ -8367,7 +8368,9 @@
           "copyPairingCode": "Copy pairing code",
           "diagnosticsCopied": "Diagnostics copied",
           "diagnosticsCopyFailed": "Failed to copy diagnostics",
-          "5e2c7a1f84": "While you're using a terminal on your phone, Orca shrinks it to fit your phone screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore or Restore all on the banner to resize manually."
+          "5e2c7a1f84": "While you're using a terminal on your phone, Orca shrinks it to fit your phone screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore or Restore all on the banner to resize manually.",
+          "pending": "Pending — not connected",
+          "revokeNamedDevice": "Revoke {{value0}}"
         },
         "MobileSettingsPane": {
           "b5a2ed83ff": "App Store",
@@ -15266,7 +15269,9 @@
           "androidHelp": {
             "guide": "Install guide"
           },
-          "openAppAndScan": "Open Orca Mobile, tap <strong>Pair Desktop</strong>, and scan the code."
+          "openAppAndScan": "Open Orca Mobile, tap <strong>Pair Desktop</strong>, and scan the code.",
+          "managePairings": "Manage mobile pairings.",
+          "pending": "Pending — not connected"
         },
         "MobilePage": {
           "e17393c6a3": "Phone preview",
@@ -15388,7 +15393,9 @@
           "custom-option": "{{address}} (custom)",
           "add-custom": "Add custom address…",
           "custom-section": "Custom",
-          "remove-custom": "Remove {{address}}"
+          "remove-custom": "Remove {{address}}",
+          "configured-route-unavailable": "Configured route unavailable. Check native ingress and reopen pairing; browser access is unchanged.",
+          "configured-route": "Use the configured route. This is not NIC discovery or proof of phone connectivity. Tailnet access follows tailnet policy, not Coder login. Pending codes have no automatic expiry; replace or revoke unused codes."
         },
         "WindowsFirewallNotice": {
           "repair-success": "Windows Firewall now allows Orca Mobile on private networks",
@@ -15472,7 +15479,8 @@
             "adc281394d": "Dismiss",
             "8cf80db43b": "Set up the Orca CLI and agent skill so agents can coordinate through Orca.",
             "2a3c5ddf5e": "Enable orchestration",
-            "8b14ba6c17": "New Browser Tab"
+            "8b14ba6c17": "New Browser Tab",
+            "notes-directory-unavailable": "The floating notes directory is not available yet. Try again in a moment."
           },
           "FloatingTerminalToggleButton": {
             "3b04b065b5": "Show floating workspace",

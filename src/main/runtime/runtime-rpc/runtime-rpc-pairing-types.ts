@@ -43,6 +43,10 @@ export type OrcaRuntimeRpcServerOptions = {
   exposeNetworkByDefault?: boolean
   /** Explicit address pins govern the whole process: override startup exposure and reconnect defaults, and refuse pairing-time widening. Loopback must survive pairing and restart. */
   pinnedBindHost?: string
+  // Operator-configured owner route only; never learned from browser request headers.
+  browserMobilePairingAddress?: string
+  // Private helper receipt, separate from the ordinary Coder pairing address.
+  nativeMobilePairingFile?: string
   webClientRoot?: string
   // Test-only timing overrides; production keeps design §3.1 defaults.
   keepaliveIntervalMs?: number

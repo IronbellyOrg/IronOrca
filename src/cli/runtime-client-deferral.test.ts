@@ -122,7 +122,8 @@ describe('RuntimeClient module-graph deferral', () => {
           `${argv.join(' ')} hook application`
         ).toHaveBeenCalledExactlyOnceWith(false, {
           agentCmdOverrides: {},
-          disabledTuiAgents: []
+          // aidev02 disables Auggie ('aug') for new installs (defaults.patch).
+          disabledTuiAgents: ['aug']
         })
       } else {
         expect(

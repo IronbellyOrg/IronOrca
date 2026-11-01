@@ -40,13 +40,23 @@ export function MobilePairedDevicesSection({
               <div>
                 <div className="text-sm font-medium">{device.name}</div>
                 <div className="text-muted-foreground text-xs">
-                  {translate('auto.components.settings.MobilePane.254a6d09e4', 'Paired')}
+                  {device.lastSeenAt === 0
+                    ? translate(
+                        'auto.components.settings.MobilePane.pending',
+                        'Pending — not connected'
+                      )
+                    : translate('auto.components.settings.MobilePane.254a6d09e4', 'Paired')}{' '}
                   {new Date(device.pairedAt).toLocaleDateString(getIntlLocale())}
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label={translate(
+                  'auto.components.settings.MobilePane.revokeNamedDevice',
+                  'Revoke {{value0}}',
+                  { value0: device.name }
+                )}
                 onClick={() => onRevokeDevice(device.deviceId)}
                 className="text-destructive hover:text-destructive"
               >

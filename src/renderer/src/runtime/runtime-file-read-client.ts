@@ -18,6 +18,7 @@ import {
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 import { chatScratchFileAddress } from './runtime-chat-scratch-file-address'
 import { readRemoteRangePreview } from './runtime-file-range-preview'
+import { floatingNotesFileAddress } from './runtime-floating-notes-file-address'
 import { isAgentSessionAttachmentStorePath } from '../../../shared/agent-session-attachments'
 import type { LocalFileAccess } from '../../../shared/local-file-access'
 import {
@@ -78,7 +79,9 @@ export async function readRuntimeFileContent({
     })
   }
   // A workspace path first; a chat's scratch file is the absolute path no workspace contains.
-  const scratch = canReadRelativeRuntimeFile(relativePath) ? null : chatScratchFileAddress(filePath)
+  const scratch =
+    floatingNotesFileAddress(worktreeId, filePath) ??
+    (canReadRelativeRuntimeFile(relativePath) ? null : chatScratchFileAddress(filePath))
   const readPath = scratch?.relativePath ?? relativePath
   if (!canReadRelativeRuntimeFile(readPath)) {
     throw new Error('Remote file is outside the owning runtime worktree')

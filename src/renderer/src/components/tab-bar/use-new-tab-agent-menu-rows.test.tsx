@@ -178,6 +178,8 @@ beforeEach(() => {
     settings: {
       ...getDefaultSettings('/home/me'),
       experimentalNativeChat: true,
+      // Upstream's baseline: no saved per-agent choices (aidev02 saves terminal-first ones).
+      nativeChatProviders: {},
       disabledTuiAgents: []
     },
     localDetectedAgentIdsByContext: { host: ['claude', 'codex'] },

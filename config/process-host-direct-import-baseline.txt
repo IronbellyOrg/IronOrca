@@ -88,6 +88,9 @@ src/main/providers/process-cwd.ts
 src/main/pty-descendant-fresh-table.ts
 src/main/pty/windows-environment-path.ts
 src/main/rate-limits/gemini-cli-oauth-extractor.ts
+# aidev02 mobile pairing: execFile of the fixed /opt/aidev/orca/runtime.sh helper (pinned env,
+# timeout, SIGKILL, 4 KiB cap); kept direct so the security-reviewed call stays unchanged.
+src/main/runtime/runtime-rpc/runtime-rpc-browser-mobile-pairing.ts
 src/main/runtime/windows-default-route-interfaces.ts
 src/main/runtime/windows-mobile-firewall.ts
 src/main/ssh/connection/ssh-connection.ts

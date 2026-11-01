@@ -8,11 +8,13 @@ import { normalizeWorktreeVisibilityDefaults } from '../../../../shared/external
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { osc52ClipboardDefaultOnOverridesPersistedOff } from '../../../../shared/osc52-clipboard-settings'
 import type { PersistedUIState } from '../../../../shared/persisted-ui-state-types'
-import {
-  applyPRBotAuthorOverride,
-  normalizePRBotAuthorOverrides
-} from '../../../../shared/pr-bot-author-overrides'
+import { normalizePRBotAuthorOverrides } from '../../../../shared/pr-bot-author-overrides'
 import { readStoredWebRuntimeEnvironment } from '../web-runtime-environment'
+import {
+  WEB_FLOATING_WORKSPACE_DEFAULT_CWD,
+  revertFloatingWorkspaceUpgradeMarker,
+  takeFloatingWorkspaceUpgrade
+} from './web-floating-workspace'
 import {
   mergeSettings,
   mergeWebUIState,
@@ -31,10 +33,12 @@ export function getStoredSettings(): GlobalSettings {
   const defaults = getDefaultSettings('~')
   const rawStoredSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
   const stored = readJson<Partial<GlobalSettings>>(SETTINGS_STORAGE_KEY, {})
-  const migratedStored = migrateStoredWebSettings(stored)
+  const floatingWorkspaceUpgrade = takeFloatingWorkspaceUpgrade(stored)
+  const migratedStored = { ...migrateStoredWebSettings(stored), ...floatingWorkspaceUpgrade }
   if (
     rawStoredSettings &&
-    (stored.autoRenameBranchFromWork !== migratedStored.autoRenameBranchFromWork ||
+    (Object.keys(floatingWorkspaceUpgrade).length > 0 ||
+      stored.autoRenameBranchFromWork !== migratedStored.autoRenameBranchFromWork ||
       stored.autoRenameBranchFromWorkDefaultedOn !==
         migratedStored.autoRenameBranchFromWorkDefaultedOn ||
       stored.terminalCursorStyle !== migratedStored.terminalCursorStyle ||
@@ -51,7 +55,16 @@ export function getStoredSettings(): GlobalSettings {
     try {
       const parsed = JSON.parse(rawStoredSettings) as unknown
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        writeJson(SETTINGS_STORAGE_KEY, migratedStored)
+        try {
+          writeJson(SETTINGS_STORAGE_KEY, migratedStored)
+        } catch (error) {
+          // Why: the upgraded blob did not persist (e.g. storage quota) but its marker is already
+          // set; undo it so the next load runs the upgrade again instead of skipping it for good.
+          if (Object.keys(floatingWorkspaceUpgrade).length > 0) {
+            revertFloatingWorkspaceUpgradeMarker()
+          }
+          throw error
+        }
         if (osc52ClipboardDefaultOnOverridesPersistedOff(stored)) {
           // readLocalWebUIState calls getStoredSettings; raw merge avoids recursive migration writes.
           writeJson(UI_STORAGE_KEY, {
@@ -67,7 +80,9 @@ export function getStoredSettings(): GlobalSettings {
   const settings = mergeSettings(
     {
       ...defaults,
-      floatingTerminalEnabled: false,
+      // Why: the shared default already enables the floating workspace; only its directory is
+      // web-specific (resolved on the runtime server, see web-floating-workspace.ts).
+      floatingTerminalCwd: WEB_FLOATING_WORKSPACE_DEFAULT_CWD,
       rightSidebarOpenByDefault: false,
       activeRuntimeEnvironmentId: null
     },
@@ -247,35 +262,6 @@ export async function syncRuntimeBackedSettings(
     // Why: unpaired/offline web clients still need local settings persistence.
     return localNext
   }
-}
-
-export async function updateRuntimePRBotAuthorOverride(args: {
-  author: string
-  isBot: boolean
-}): Promise<GlobalSettings> {
-  const local = getStoredSettings()
-  if (requireActiveEnvironmentOrNull()) {
-    // Why: don't report a successful mark the authoritative runtime failed to persist and will later overwrite.
-    const result = await callRuntimeResult<{ settings: Partial<GlobalSettings> }>(
-      'settings.updatePRBotAuthorOverride',
-      args,
-      15_000
-    )
-    const next = mergeSettings(local, {
-      prBotAuthorOverrides: normalizePRBotAuthorOverrides(result.settings.prBotAuthorOverrides)
-    })
-    writeStoredSettings(next)
-    return next
-  }
-  const next = mergeSettings(local, {
-    prBotAuthorOverrides: applyPRBotAuthorOverride(
-      local.prBotAuthorOverrides,
-      args.author,
-      args.isBot
-    )
-  })
-  writeStoredSettings(next)
-  return next
 }
 
 export function readLocalWebUIState(): PersistedUIState {

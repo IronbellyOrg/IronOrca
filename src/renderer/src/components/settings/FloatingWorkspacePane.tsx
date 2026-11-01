@@ -37,7 +37,8 @@ export function FloatingWorkspacePane({
   updateSettings
 }: FloatingWorkspacePaneProps): React.JSX.Element | null {
   const searchQuery = useAppStore((state) => state.settingsSearchQuery)
-  const includeBrowser = !isWebClientLocation()
+  const isWebClient = isWebClientLocation()
+  const includeBrowser = !isWebClient
   const [resolvedFloatingWorkspacePath, setResolvedFloatingWorkspacePath] = useState('')
 
   useEffect(() => {
@@ -151,6 +152,17 @@ export function FloatingWorkspacePane({
                   'auto.components.settings.FloatingWorkspacePane.505001823e',
                   'Choose floating workspace directory'
                 )}
+                // Why: the web client has no directory picker (its pickFloatingWorkspaceDirectory
+                // is a stub that always returns null), so an enabled button would do nothing.
+                disabled={isWebClient}
+                title={
+                  isWebClient
+                    ? translate(
+                        'auto.components.settings.FloatingWorkspacePane.web-directory-unavailable',
+                        'Choosing a different directory is not available in the web client yet.'
+                      )
+                    : undefined
+                }
                 onClick={() => void pickFloatingWorkspaceDirectory()}
               >
                 <FolderOpen className="size-4" />

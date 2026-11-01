@@ -169,7 +169,8 @@ async function runSelectedRuntimeAddJourney(
     await createDialog.getByRole('button', { name: /Create (?:on host|new project)/i }).click()
     const createStep = client.page.getByRole('dialog', { name: /Create a new project/i })
     await createStep.locator('#create-project-name').fill('runtime-created-project')
-    await createStep.getByPlaceholder('/home/user/projects').fill(fixture.createParentPath)
+    // aidev02: the parent-folder placeholder is the workspace's projects folder.
+    await createStep.getByPlaceholder('/home/coder/workspaces').fill(fixture.createParentPath)
     await createStep.getByRole('button', { name: 'Create project', exact: true }).click()
     const createCollision = await injectSameIdLocalActivationCollision(
       client.page,
