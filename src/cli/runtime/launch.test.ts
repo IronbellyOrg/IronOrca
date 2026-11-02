@@ -211,9 +211,11 @@ describe('serveOrcaApp', () => {
     replacement.pid = 4102
     spawnMock.mockReturnValueOnce(first).mockReturnValueOnce(replacement)
     const result = serveOrcaApp({ bindHost: '127.0.0.1', json: true })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: spawn is mocked; its second argument is the argv string array serve passes.
     const firstArgs = [...spawnMock.mock.calls[0][1]] as string[]
     expect(firstArgs).toContain('--serve-bind')
     expect(firstArgs[firstArgs.indexOf('--serve-bind') + 1]).toBe('127.0.0.1')
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: getMacAppBundlePath is mocked to an app bundle, so serve puts the handoff path string in the child env.
     const handoffPath = spawnMock.mock.calls[0][2].env.ORCA_SERVE_UPDATE_HANDOFF_PATH as string
     await writeFile(
       handoffPath,

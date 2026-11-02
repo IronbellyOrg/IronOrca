@@ -7,12 +7,11 @@ import {
 const SERVER_HOME = '/srv/the-runtime-server-home'
 const BROWSER_HOME = '/home/the-browser-machine'
 
-const hoisted = vi.hoisted(() => ({
-  toastError: vi.fn(),
-  browseCalls: [] as { environmentId: string; path: string }[],
-  serverDirectories: new Set<string>(),
-  mode: 'up' as 'up' | 'down'
-}))
+const hoisted = vi.hoisted(() => {
+  const browseCalls: { environmentId: string; path: string }[] = []
+  const runtime: { mode: 'up' | 'down' } = { mode: 'up' }
+  return { toastError: vi.fn(), browseCalls, serverDirectories: new Set<string>(), ...runtime }
+})
 
 vi.mock('sonner', () => ({ toast: { error: hoisted.toastError } }))
 

@@ -13,6 +13,7 @@ import {
 // Web-realistic store: pairing leaves the settings preference null, and the runtimeEnvironments
 // slice may still be empty (it fills from an async list()). The owner must not depend on either.
 function webState(overrides: Partial<AppState> = {}): AppState {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the resolvers read other AppState slices this state omits and treat them as absent.
   return {
     repos: [],
     worktreesByRepo: {},

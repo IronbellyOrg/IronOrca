@@ -621,6 +621,7 @@ export function registerPtyConnectionRemoteRuntimeAttachTests(): void {
       transportFactoryQueue.push(transport)
       // Web-realistic state: pairing leaves the settings preference null, and the runtimeEnvironments
       // slice is still empty when the pane first connects (it fills from an async list()).
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: seeds only the store slices the floating pane connect path reads.
       mockStoreState = {
         ...mockStoreState,
         tabsByWorktree: { 'global-floating-terminal': [{ id: 'tab-1', ptyId: null }] },
@@ -632,6 +633,7 @@ export function registerPtyConnectionRemoteRuntimeAttachTests(): void {
         connectPanePty(
           createPane(1) as never,
           createManager(1) as never,
+          // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: connectPanePty reads only the deps members createDeps provides.
           createDeps({
             worktreeId: 'global-floating-terminal',
             cwd: '/home/coder/workspaces'
@@ -658,6 +660,7 @@ export function registerPtyConnectionRemoteRuntimeAttachTests(): void {
       const { createIpcPtyTransport } = await import('./pty-transport')
       const transport = createMockTransport()
       transportFactoryQueue.push(transport)
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: seeds only the store slices the floating pane connect path reads.
       mockStoreState = {
         ...mockStoreState,
         tabsByWorktree: { 'global-floating-terminal': [{ id: 'tab-1', ptyId: null }] },

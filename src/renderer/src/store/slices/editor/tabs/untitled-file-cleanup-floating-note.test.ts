@@ -39,6 +39,7 @@ function closeUntitled(filePath: string, relativePath: string): void {
     isUntitled: true
   }
   const state = { openFiles: [], worktreesByRepo: {} }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: cleanup reads only openFiles and worktreesByRepo, and the file fields set above.
   deleteUntouchedUntitledFile(() => state as never, file as never)
 }
 

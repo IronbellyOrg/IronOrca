@@ -42,6 +42,7 @@ describe('web session reload keeps floating tabs (#325)', () => {
 
   it('a paired client reads its saved floating tabs back after a reload', async () => {
     await install(true)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the terminal() and open-file literals carry only the fields the sanitizer reads, not full TerminalTab/PersistedOpenFile.
     await window.api.session.set({
       activeRepoId: 'repo-1',
       activeWorktreeId: 'repo-1::/worktree',
@@ -77,6 +78,7 @@ describe('web session reload keeps floating tabs (#325)', () => {
 
   it('an unpaired client reads the same floating tabs back', async () => {
     await install(false)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the terminal() and open-file literals carry only the fields the sanitizer reads, not full TerminalTab/PersistedOpenFile.
     await window.api.session.set({
       activeRepoId: null,
       activeWorktreeId: null,

@@ -17,6 +17,7 @@ const getFloatingMarkdownDirectory = vi.fn<() => Promise<string>>()
 const setCwd = vi.fn<(cwd: string) => void>()
 
 function makeInput(overrides: Partial<GeometryInput> = {}): GeometryInput {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the cwd path reads only the members this input provides.
   return {
     boundsSourceRef: { current: 'default' },
     committedBoundsRef: { current: null },

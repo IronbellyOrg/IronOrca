@@ -49,10 +49,12 @@ async function createVia(
   }
   await method.handler(
     method.params.parse({ worktree: canonicalSelector, ...params }),
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: of runtime this path uses only createTerminal and dedupeTerminalCreate; other context fields are optional or come from ...context.
     { runtime: { createTerminal, dedupeTerminalCreate }, ...context } as unknown as RpcContext,
     vi.fn()
   )
   expect(createTerminal).toHaveBeenCalledTimes(1)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: createTerminal is called with (worktree, options); only the options are read.
   return (createTerminal.mock.calls[0] as unknown as [string, Record<string, unknown>])[1]
 }
 

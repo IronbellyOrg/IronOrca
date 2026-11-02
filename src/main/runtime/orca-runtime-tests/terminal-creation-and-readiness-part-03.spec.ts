@@ -349,6 +349,7 @@ describe('OrcaRuntimeService', () => {
       cwd: dir
     })
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the spawn mock receives the PTY spawn options; only cwd is read.
     const spawnCall = spawn.mock.calls[0]?.[0] as { cwd?: string } | undefined
     expect(spawnCall?.cwd).toBe(dir)
   })
@@ -370,6 +371,7 @@ describe('OrcaRuntimeService', () => {
         cwd: '~/workspaces'
       })
 
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the spawn mock receives the PTY spawn options; only cwd is read.
       const spawnCall = spawn.mock.calls[0]?.[0] as { cwd?: string } | undefined
       // Why a suffix: upstream's floating root is the server's floating directory setting
       // (home by default), so assert the raw `~` was joined, not expanded.

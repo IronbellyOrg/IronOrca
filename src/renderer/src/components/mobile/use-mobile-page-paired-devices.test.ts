@@ -101,6 +101,7 @@ describe('useMobilePagePairedDevices', () => {
       latest?.pairAnotherDevice()
     })
     const poll = () =>
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the poll mock receives the poll options object the hook passes.
       mocks.pollDevices.mock.lastCall![0] as {
         deviceCountAtQr: number
         currentDeviceCount: number

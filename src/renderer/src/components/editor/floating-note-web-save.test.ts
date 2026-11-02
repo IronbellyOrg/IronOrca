@@ -10,9 +10,10 @@ import { attachEditorAutosaveController } from './editor-autosave-controller'
 import { requestEditorFileSave } from './editor-autosave'
 
 const NOTES = '/home/coder/.config/orca/floating-workspace'
-const calls = vi.hoisted(() => ({
-  mutations: [] as { target: unknown; method: string; params: unknown }[]
-}))
+const calls = vi.hoisted(() => {
+  const mutations: { target: unknown; method: string; params: unknown }[] = []
+  return { mutations }
+})
 
 // Only the wire is replaced: everything from the editor save queue down to the RPC call is real.
 vi.mock('@/runtime/runtime-file-mutation-rpc', async (importOriginal) => ({
@@ -39,6 +40,7 @@ vi.mock('@/runtime/runtime-file-mutation-rpc', async (importOriginal) => ({
 
 function openWebFloatingNote(): string {
   useAppStore.setState(useAppStore.getInitialState(), true)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: seeds only the store slices the editor save path reads.
   useAppStore.setState({
     settings: { editorAutoSave: false, activeRuntimeEnvironmentId: null },
     repos: [],

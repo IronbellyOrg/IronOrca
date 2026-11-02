@@ -32,10 +32,13 @@ const mocks = vi.hoisted(() => {
   const useAppStore = Object.assign((selector: (s: typeof state) => unknown) => selector(state), {
     getState: () => state
   })
+  const paired: { latestPairedDevicesProps: PairedDevicesProps | null } = {
+    latestPairedDevicesProps: null
+  }
   return {
     state,
     useAppStore,
-    latestPairedDevicesProps: null as PairedDevicesProps | null,
+    ...paired,
     getPairingQR: vi.fn(),
     listDevices: vi.fn(),
     revokeDevice: vi.fn()

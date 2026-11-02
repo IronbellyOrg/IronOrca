@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-const hoisted = vi.hoisted(() => ({ state: {} as Record<string, unknown> }))
+const hoisted = vi.hoisted(() => {
+  const state: Record<string, unknown> = {}
+  return { state }
+})
 
 vi.mock('@/store', () => ({
   useAppStore: (selector: (state: Record<string, unknown>) => unknown) => selector(hoisted.state)
