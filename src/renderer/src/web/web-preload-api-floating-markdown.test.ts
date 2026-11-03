@@ -6,10 +6,11 @@ import {
 
 const SERVER_NOTES_DIR = '/srv/user-data/floating-workspace'
 
-const hoisted = vi.hoisted(() => ({
-  calls: [] as { target: unknown; method: string }[],
-  mode: 'up' as 'up' | 'down'
-}))
+const hoisted = vi.hoisted(() => {
+  const calls: { target: unknown; method: string }[] = []
+  const runtime: { mode: 'up' | 'down' } = { mode: 'up' }
+  return { calls, ...runtime }
+})
 
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 

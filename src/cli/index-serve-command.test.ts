@@ -112,6 +112,7 @@ describe('orca cli worktree awareness', () => {
       try {
         await main(['serve', ...(bindHost ? [`--bind=${bindHost}`] : []), '--json'], '/tmp/repo')
         expect(spawnMock).toHaveBeenCalledTimes(1)
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: spawn is mocked; its second argument is the argv string array serve passes.
         const childArgs = spawnMock.mock.calls[0][1] as string[]
         expect(getServeOptions(['/opt/orca/orca-ide', ...childArgs]).bindHost).toBe(bindHost)
         if (bindHost) {

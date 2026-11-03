@@ -14,6 +14,7 @@ async function installAndRead(
 ): Promise<FloatingSettings> {
   const { installWebPreloadApi } = await import('./web-preload-api')
   installWebPreloadApi()
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the web settings store returns full GlobalSettings; the test reads only floating keys.
   return globals.window.api.settings.get() as Promise<FloatingSettings>
 }
 
@@ -26,6 +27,7 @@ async function reload(
 }
 
 function storedBlob(globals: ReturnType<typeof installBrowserGlobals>): Partial<FloatingSettings> {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the stored blob is the web settings JSON this test reads floating keys from.
   return JSON.parse(globals.storage.getItem(SETTINGS_KEY) ?? '{}') as Partial<FloatingSettings>
 }
 
@@ -88,7 +90,9 @@ describe('web floating workspace defaults', () => {
   const CWD = { empty: '', tilde: '~', custom: '/srv/projects', missing: undefined } as const
   type EnabledKey = keyof typeof ENABLED
   type CwdKey = keyof typeof CWD
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Object.keys of these literal tables returns exactly their declared keys.
   const rows: [EnabledKey, CwdKey][] = (Object.keys(ENABLED) as EnabledKey[]).flatMap((e) =>
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Object.keys of these literal tables returns exactly their declared keys.
     (Object.keys(CWD) as CwdKey[]).map((c): [EnabledKey, CwdKey] => [e, c])
   )
 

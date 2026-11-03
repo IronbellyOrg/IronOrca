@@ -43,6 +43,7 @@ async function connectAndGetCreateParams(
   if (!create) {
     throw new Error('terminal.create was never called')
   }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: terminal.create params are a plain object; the tests read worktree and cwd.
   return create[0].params as Record<string, unknown>
 }
 

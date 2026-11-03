@@ -104,9 +104,11 @@ describe('sanitizeWebRuntimeWorkspaceSession: floating workspace (#325)', () => 
     delete session.tabsByWorktree[FLOATING]
     delete session.openFilesByWorktree?.[FLOATING]
     session.browserTabsByWorktree = {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the sanitizer reads only id from a browser tab; the fixture omits the other BrowserWorkspace fields.
       [FLOATING]: [{ id: 'bw-1', activePageId: 'page-1' } as never]
     }
     session.browserPagesByWorkspace = {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: pages are copied by reference, never read; the fixture omits the other BrowserPage fields.
       'bw-1': [{ id: 'page-1', url: 'https://example.com' } as never]
     }
     const out = sanitizeWebRuntimeWorkspaceSession(session)

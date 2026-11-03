@@ -61,6 +61,7 @@ describe('workspace kanban drop target under a floating overlay', () => {
     const { board, lane, overlay } = boardWithLane()
     stubDocument([overlay, lane, board])
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: getDropTarget uses contains() and querySelectorAll() on the board, and FakeElement provides both.
     expect(getDropTarget(board as never, 100, 80)).toEqual({ status: 'state-21', isPinDrop: false })
   })
 
@@ -68,6 +69,7 @@ describe('workspace kanban drop target under a floating overlay', () => {
     const { board, overlay } = boardWithLane()
     stubDocument([overlay])
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: getDropTarget uses contains() and querySelectorAll() on the board, and FakeElement provides both.
     expect(getDropTarget(board as never, 100, 80)).toEqual({ status: null, isPinDrop: false })
   })
 })

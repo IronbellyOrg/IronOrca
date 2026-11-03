@@ -54,8 +54,14 @@ export function createWebMobileApi(): Partial<PreloadApi> {
             args
           )
         } catch (error) {
-          const safe = error as Error & { code: string }
-          return { available: false, reason: safe.code, guidance: safe.message }
+          // mobileCall throws Errors with a fixed code and message; anything else reads as unavailable.
+          const reason =
+            error instanceof Error && 'code' in error && typeof error.code === 'string'
+              ? error.code
+              : 'runtime_unavailable'
+          const guidance =
+            error instanceof Error ? error.message : 'Reconnect to the Orca runtime and try again.'
+          return { available: false, reason, guidance }
         }
       },
       getWindowsFirewallStatus: () => Promise.resolve({ supported: false }),

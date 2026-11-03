@@ -37,12 +37,13 @@ vi.mock('node:child_process', async (importOriginal) => {
     ...actual,
     execFile: (...args: unknown[]) => {
       if (args[0] !== '/opt/aidev/orca/runtime.sh') {
-        // SAFETY: forwards the caller's own arguments, unchanged, to the real execFile.
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: forwards the caller's own arguments, unchanged, to the real execFile.
         return (actual.execFile as (...callArgs: unknown[]) => unknown)(...args)
       }
       native.calls++
       expect(args[1]).toEqual(['tailnet', 'endpoint'])
       expect(args[2]).toMatchObject({ timeout: 18000, maxBuffer: 4096 })
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: execFile is called with (file, args, options, callback); the fourth argument is the callback.
       const callback = args[3] as (error: Error | null, stdout: string) => void
       callback(
         native.online ? null : new Error('private diagnostics must not escape'),
@@ -157,6 +158,7 @@ describe('browser mobile pairing owner route', () => {
       ) => {
         const id = `request-${++serial}`
         sendEncryptedWsRequest(client.session, { id, method, params })
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the encrypted reader yields the decoded RPC response for this request id.
         return (await client.reader.next(id)) as unknown as RuntimeRpcResponse<T>
       }
       const create = async (client: Awaited<ReturnType<typeof connect>>, rotate = false) => {
@@ -381,6 +383,7 @@ describe('browser mobile pairing owner route', () => {
         null,
         socket
       )
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the server replies with a JSON runtime RPC response envelope.
       return JSON.parse(replies.at(-1)!) as RuntimeRpcResponse<unknown>
     }
     try {

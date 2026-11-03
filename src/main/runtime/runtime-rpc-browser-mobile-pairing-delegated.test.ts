@@ -28,12 +28,14 @@ function fakeServer() {
     }),
     revokeMobileDevice
   }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: list and revoke use only getDeviceRegistry and revokeMobileDevice, which this fake provides; createPairingOffer is reached only by create.
   return { server: server as never, revokeMobileDevice }
 }
 
 describe('owner pairing management and delegated phones', () => {
   it('lists this host’s own phones and pending codes, not delegated ones', async () => {
     const { server } = fakeServer()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handler returns unknown; for mobile.pairing.list it is { devices: [...] } with these fields.
     const result = (await browserMobilePairingRequest(
       server,
       'https://coder.example.test/@u/w/apps/orca/',

@@ -14,6 +14,7 @@ beforeEach(() => {
     repos: [],
     worktreesByRepo: {},
     detectedWorktreesByRepo: {},
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the floating owner route reads only activeRuntimeEnvironmentId from settings.
     settings: { activeRuntimeEnvironmentId: null } as never,
     sshConnectionStates: new Map(),
     sshStateByEnvironment: new Map(),

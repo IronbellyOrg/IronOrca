@@ -3,7 +3,10 @@ import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import { setWebFloatingRuntimeOwnerResolver } from './terminal-worktree-route'
 
 const NOTES = '/srv/user-data/floating-workspace'
-const created = vi.hoisted(() => ({ calls: [] as unknown[][] }))
+const created = vi.hoisted(() => {
+  const calls: unknown[][] = []
+  return { calls }
+})
 
 vi.mock('./create-untitled-markdown', () => ({
   createUntitledMarkdownFileWithTemplateSelection: vi.fn(async (...args: unknown[]) => {
@@ -38,6 +41,7 @@ describe('floating New Markdown on web (#325)', () => {
     setWebFloatingRuntimeOwnerResolver(() => 'web-env')
     const s = store()
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the tab creator uses only openFile and the members store() provides.
     await createFloatingWorkspaceMarkdownTab(s as never, '')
 
     expect(getFloatingMarkdownDirectory).toHaveBeenCalledTimes(1)
@@ -56,6 +60,7 @@ describe('floating New Markdown on web (#325)', () => {
     vi.stubGlobal('window', { api: { app: { getFloatingMarkdownDirectory: vi.fn() } } })
     const s = store()
 
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the tab creator uses only openFile and the members store() provides.
     await createFloatingWorkspaceMarkdownTab(s as never, '/home/me/notes')
 
     const [file, options] = s.openFile.mock.calls[0]!

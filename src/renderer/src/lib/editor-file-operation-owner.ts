@@ -273,14 +273,14 @@ export function getEditorFileOperationContext(
     : provenance.generation.route
   const host = parseExecutionHostId(route.executionHostId)
   const workspaceScope = parseWorkspaceKey(file.worktreeId)
-  const resolvedWorktreePath =
+  const knownWorktreePath =
     (worktreePath?.trim() ? worktreePath : null) ??
     (workspaceScope?.type === 'folder'
       ? (selectFolderWorkspaces(state).find(
           (workspace) => workspace.id === workspaceScope.folderWorkspaceId
         )?.folderPath ?? null)
-      : null) ??
-    floatingWorkspaceRoot(file)
+      : null)
+  const resolvedWorktreePath = knownWorktreePath ?? floatingWorkspaceRoot(file)
   if (!host) {
     throw new Error(OWNER_CHANGED_MESSAGE)
   }

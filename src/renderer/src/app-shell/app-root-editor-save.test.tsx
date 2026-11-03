@@ -11,7 +11,10 @@ import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import { AppBackgroundServices } from './AppBackgroundServices'
 
 const NOTES = '/home/coder/.config/orca/floating-workspace'
-const calls = vi.hoisted(() => ({ writes: [] as { method: string; params: unknown }[] }))
+const calls = vi.hoisted(() => {
+  const writes: { method: string; params: unknown }[] = []
+  return { writes }
+})
 
 // Only the wire is replaced: the background services, save controller, save queue and file client are real.
 vi.mock('@/runtime/runtime-file-mutation-rpc', async (importOriginal) => ({
@@ -38,6 +41,7 @@ vi.mock('@/runtime/runtime-file-mutation-rpc', async (importOriginal) => ({
 
 function seedNoProjectOpen(): string {
   useAppStore.setState(useAppStore.getInitialState(), true)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: seeds only the store slices the editor save path reads.
   useAppStore.setState({
     // A fresh Orca Web workspace: no project, so the terminal workbench never mounts.
     activeWorktreeId: null,

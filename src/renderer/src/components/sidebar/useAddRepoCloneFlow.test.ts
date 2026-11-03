@@ -102,7 +102,7 @@ type DestinationUpdater = (prev: string) => string
 // setter only records it, so tests apply the recorded updater themselves.
 function destinationUpdaters(): DestinationUpdater[] {
   return mocks.stateSetters[1].mock.calls
-    .map(([value]) => value as unknown)
+    .map(([value]): unknown => value)
     .filter((value): value is DestinationUpdater => typeof value === 'function')
 }
 

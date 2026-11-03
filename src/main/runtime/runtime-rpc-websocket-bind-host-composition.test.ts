@@ -72,6 +72,7 @@ vi.mock('../git/worktree', () => {
 
 describe('Electron serve composition keeps a pinned bind on loopback (aidev02 loopback-bind)', () => {
   const wsTransportOf = (server: OrcaRuntimeRpcServer): WebSocketTransport | undefined =>
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: reads the private transport list only to find the WebSocket transport; the guard below narrows it.
     (server['activeTransports'] as unknown[]).find(
       (transport): transport is WebSocketTransport => transport instanceof WebSocketTransport
     )
