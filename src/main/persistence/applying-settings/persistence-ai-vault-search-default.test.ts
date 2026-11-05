@@ -23,7 +23,7 @@ vi.mock('electron', () => ({
   }
 }))
 
-const SHIPPED = { enabled: true, historyDays: 90 }
+const SHIPPED = { enabled: true, historyDays: 15 }
 
 describe('session search default', () => {
   beforeEach(() => {
@@ -65,17 +65,17 @@ describe('session search default', () => {
   it('stays off after default-on, toggle off, save and reload', async () => {
     const store = await createStore()
     expect(resolveAiVaultSearchSettings(store.getSettings()).enabled).toBe(true)
-    store.updateSettings({ aiVaultSearch: { enabled: false, historyDays: 90 } })
+    store.updateSettings({ aiVaultSearch: { enabled: false, historyDays: 15 } })
     store.flush()
     expect(readDataFile()).toHaveProperty('settings.aiVaultSearch', {
       enabled: false,
-      historyDays: 90
+      historyDays: 15
     })
     await closeTestStores()
     const reopened = await createStore()
     expect(resolveAiVaultSearchSettings(reopened.getSettings())).toEqual({
       enabled: false,
-      historyDays: 90
+      historyDays: 15
     })
   })
 

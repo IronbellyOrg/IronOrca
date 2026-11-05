@@ -6,10 +6,10 @@ import {
 } from './ai-vault-search-settings'
 import { getDefaultSettings } from './constants'
 
-it('ships session search on for 90 days in the default profile', () => {
+it('ships session search on for 15 days in the default profile', () => {
   const shipped = getDefaultSettings('/tmp')
-  expect(shipped.aiVaultSearch).toEqual({ enabled: true, historyDays: 90 })
-  expect(resolveAiVaultSearchSettings(shipped)).toEqual({ enabled: true, historyDays: 90 })
+  expect(shipped.aiVaultSearch).toEqual({ enabled: true, historyDays: 15 })
+  expect(resolveAiVaultSearchSettings(shipped)).toEqual({ enabled: true, historyDays: 15 })
 })
 
 it('reads a stored object without enabled as off, not as the shipped default', () => {
