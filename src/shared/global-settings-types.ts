@@ -490,7 +490,7 @@ export type GlobalSettings = GlobalSettingsBase & {
   tabSwitchKeybindingSeed?: 'pending' | 'done'
   /** Voice/dictation settings; persistence merge hydrates getDefaultSettings() values for older profiles. */
   voice?: VoiceSettings
-  /** Transcript full-text search consent + retention. Absent means off; nothing indexes until the user opts in. */
+  /** Transcript full-text search consent + retention. aidev02 defaults it on; a stored value (even off) wins, and a stored object without `enabled` reads as off. */
   aiVaultSearch?: AiVaultSearchSettings
 }
 

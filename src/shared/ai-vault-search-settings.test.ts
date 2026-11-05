@@ -4,8 +4,22 @@ import {
   resolveAiVaultSearchSettings,
   sameAiVaultSearchSettings
 } from './ai-vault-search-settings'
+import { getDefaultSettings } from './constants'
 
-// Default off: indexing reads all machine transcripts and requires recorded opt-in.
+it('ships session search on for 90 days in the default profile', () => {
+  const shipped = getDefaultSettings('/tmp')
+  expect(shipped.aiVaultSearch).toEqual({ enabled: true, historyDays: 90 })
+  expect(resolveAiVaultSearchSettings(shipped)).toEqual({ enabled: true, historyDays: 90 })
+})
+
+it('reads a stored object without enabled as off, not as the shipped default', () => {
+  expect(resolveAiVaultSearchSettings({ aiVaultSearch: { historyDays: 30 } })).toEqual({
+    enabled: false,
+    historyDays: 30
+  })
+})
+
+// The resolver fallback stays off for an absent key: only the shipped profile default turns search on.
 it('reads anything that is not an explicit opt-in as off', () => {
   expect(resolveAiVaultSearchSettings(undefined)).toEqual({ enabled: false, historyDays: null })
   expect(resolveAiVaultSearchSettings({})).toEqual({ enabled: false, historyDays: null })
