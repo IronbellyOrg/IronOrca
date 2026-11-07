@@ -249,6 +249,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   agentSkillSharingEnabled?: boolean
   /** Maximum worker nesting; 1 forbids sub-workers. Renderer-only: omit from SettingsUpdate RPC so workers cannot raise their cap. */
   nestedWorkerMaxDepth?: number
+  /** One-shot guard: a stored 1 from the old default moves to 2 once; any later write keeps its value. */
+  nestedWorkerMaxDepthDefaultedToTwo?: boolean
   /** Escalate native-chat worker turn errors to the dispatching Run; absent means on. Renderer-only so workers cannot silence failures via CLI. */
   orchestrationChatErrorEscalationEnabled?: boolean
   /** Only toggles the sidebar shortcut; Artifacts stay reachable from Settings. */

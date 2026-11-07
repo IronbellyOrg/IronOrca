@@ -77,6 +77,29 @@ describe('nested worker depth', () => {
     expect(sub.depth).toBe(2)
   })
 
+  // The shipped aidev02 cap is 2: a coordinator's worker may start one component worker, no deeper.
+  it('at a cap of 2 allows depth 2 and refuses depth 3', () => {
+    coordinatorDispatchesWorker(2)
+    const second = db.createTask({ runId: 'run_legacy_local', spec: 'second level' })
+    db.createDispatchContext({
+      taskId: second.id,
+      assigneeHandle: 'term_sub',
+      assigneePaneKey: 'tab_sub:leaf_sub',
+      creator: { kind: 'terminal', handle: 'term_worker', paneKey: 'tab_worker:leaf_worker' },
+      maxDepth: 2
+    })
+    const third = db.createTask({ runId: 'run_legacy_local', spec: 'third level' })
+    expect(() =>
+      db.createDispatchContext({
+        taskId: third.id,
+        assigneeHandle: 'term_subsub',
+        assigneePaneKey: 'tab_subsub:leaf_subsub',
+        creator: { kind: 'terminal', handle: 'term_sub', paneKey: 'tab_sub:leaf_sub' },
+        maxDepth: 2
+      })
+    ).toThrow(/depth 3 \(max 2\)/)
+  })
+
   it('closes the run-create bypass: a fresh Run does not reset the creator depth', () => {
     // A worker-created Run must not evade depth derived from its creator Dispatch.
     coordinatorDispatchesWorker()
