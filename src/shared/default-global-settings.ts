@@ -260,6 +260,8 @@ export function buildDefaultSettings(args: {
     codexTerminalServerIsolation: true,
     codexSharedServerWarning: true,
     tabAutoGenerateTitle: true,
+    // aidev02: session search on for new profiles; a stored object (even off) replaces this whole value on load.
+    aiVaultSearch: { enabled: true, historyDays: 15 },
     confirmClosePinnedTab: true,
     editorPreviewTabsEnabled: true,
     keepComputerAwakeWhileAgentsRun: false,
