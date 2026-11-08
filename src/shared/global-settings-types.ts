@@ -249,6 +249,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   agentSkillSharingEnabled?: boolean
   /** Maximum worker nesting; 1 forbids sub-workers. Renderer-only: omit from SettingsUpdate RPC so workers cannot raise their cap. */
   nestedWorkerMaxDepth?: number
+  /** One-shot guard: a stored 1 from the old default moves to 2 once; any later write keeps its value. */
+  nestedWorkerMaxDepthDefaultedToTwo?: boolean
   /** Escalate native-chat worker turn errors to the dispatching Run; absent means on. Renderer-only so workers cannot silence failures via CLI. */
   orchestrationChatErrorEscalationEnabled?: boolean
   /** Only toggles the sidebar shortcut; Artifacts stay reachable from Settings. */
@@ -490,7 +492,7 @@ export type GlobalSettings = GlobalSettingsBase & {
   tabSwitchKeybindingSeed?: 'pending' | 'done'
   /** Voice/dictation settings; persistence merge hydrates getDefaultSettings() values for older profiles. */
   voice?: VoiceSettings
-  /** Transcript full-text search consent + retention. Absent means off; nothing indexes until the user opts in. */
+  /** Transcript full-text search consent + retention. aidev02 defaults it on; a stored value (even off) wins, and a stored object without `enabled` reads as off. */
   aiVaultSearch?: AiVaultSearchSettings
 }
 

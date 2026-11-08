@@ -14,6 +14,7 @@ import {
   DEFAULT_LEFT_SIDEBAR_TINT_OPACITY
 } from './left-sidebar-appearance'
 import { DEFAULT_SOURCE_CONTROL_GROUP_ORDER } from './source-control-group-order'
+import { NESTED_WORKER_MAX_DEPTH_DEFAULT } from './nested-worker-depth'
 
 // aidev02: with Chat UI on, upstream opens any unchosen agent that has a structured session in
 // chat. Every such agent here keeps opening new tabs in the terminal, the behavior the retired
@@ -175,7 +176,8 @@ export function buildDefaultSettings(args: {
     artifactsEnabled: true,
     artifactSharingEnabled: false,
     agentSkillSharingEnabled: false,
-    nestedWorkerMaxDepth: 1,
+    nestedWorkerMaxDepth: NESTED_WORKER_MAX_DEPTH_DEFAULT,
+    nestedWorkerMaxDepthDefaultedToTwo: true,
     orchestrationChatErrorEscalationEnabled: true,
     orchestrationHeartbeatsEnabled: true,
     orchestrationHeartbeatIntervalMinutes: 5,
@@ -258,6 +260,8 @@ export function buildDefaultSettings(args: {
     codexTerminalServerIsolation: true,
     codexSharedServerWarning: true,
     tabAutoGenerateTitle: true,
+    // aidev02: session search on for new profiles; a stored object (even off) replaces this whole value on load.
+    aiVaultSearch: { enabled: true, historyDays: 15 },
     confirmClosePinnedTab: true,
     editorPreviewTabsEnabled: true,
     keepComputerAwakeWhileAgentsRun: false,
