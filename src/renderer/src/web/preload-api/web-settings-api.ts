@@ -65,6 +65,12 @@ export function createWebSettingsApi(): Partial<PreloadApi> {
         if ('autoRenameBranchFromWorkDefaultedOn' in sanitizedUpdates) {
           sanitizedUpdates.autoRenameBranchFromWorkDefaultedOn = true
         }
+        if (
+          'experimentalAgentHibernation' in sanitizedUpdates ||
+          'agentHibernationDefaultedOn' in sanitizedUpdates
+        ) {
+          sanitizedUpdates.agentHibernationDefaultedOn = true
+        }
         if ('terminalCursorStyle' in sanitizedUpdates) {
           Object.assign(
             sanitizedUpdates,
