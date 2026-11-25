@@ -1,10 +1,13 @@
 import type { AgentStatusEntry } from '../../../shared/agent-status-types'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import type { TerminalTab } from '../../../shared/terminal-tab-types'
+import { parsePaneKey } from '../../../shared/stable-pane-id'
 import {
   getEligiblePane,
   getEntryTabId,
+  hasUnsettledOrUnknownDispatch,
   toRuntimePtyId,
+  type CoordinatorHold,
   type EligiblePane
 } from './agent-hibernation-pane-eligibility'
 import type { AgentHibernationPlannerSnapshot } from './agent-hibernation-planner-snapshot'
@@ -96,6 +99,59 @@ function getAgentEntriesByTabId(
   return entriesByTabId
 }
 
+function addToList(map: Map<string, string[]>, key: string, value: string): void {
+  const list = map.get(key)
+  if (list) {
+    list.push(value)
+  } else {
+    map.set(key, [value])
+  }
+}
+
+// Why: a worker names its coordinator by pane key or by terminal handle, and a stored pane key can
+// carry an older tab id than the live one, so a matching leaf id counts too (as the runtime
+// projection treats stored and live keys).
+function getCoordinatorHold(
+  agentStatusByPaneKey: AgentHibernationPlannerSnapshot['agentStatusByPaneKey']
+): Map<string, CoordinatorHold> {
+  const entries = Object.values(agentStatusByPaneKey).filter(
+    (entry): entry is AgentStatusEntry => entry !== undefined
+  )
+  const paneKeysByLeafId = new Map<string, string[]>()
+  const paneKeysByHandle = new Map<string, string[]>()
+  for (const entry of entries) {
+    const leafId = parsePaneKey(entry.paneKey)?.leafId
+    if (leafId) {
+      addToList(paneKeysByLeafId, leafId, entry.paneKey)
+    }
+    if (entry.terminalHandle) {
+      addToList(paneKeysByHandle, entry.terminalHandle, entry.paneKey)
+    }
+  }
+  const holds = new Map<string, CoordinatorHold>()
+  for (const worker of entries) {
+    const { parentPaneKey, parentTerminalHandle } = worker.orchestration ?? {}
+    const parentLeafId = parentPaneKey ? parsePaneKey(parentPaneKey)?.leafId : undefined
+    const coordinatorPaneKeys = new Set([
+      ...(parentPaneKey && agentStatusByPaneKey[parentPaneKey] ? [parentPaneKey] : []),
+      ...(parentLeafId ? (paneKeysByLeafId.get(parentLeafId) ?? []) : []),
+      ...(parentTerminalHandle ? (paneKeysByHandle.get(parentTerminalHandle) ?? []) : [])
+    ])
+    const stateStartedAt = Number.isFinite(worker.stateStartedAt) ? worker.stateStartedAt : 0
+    for (const paneKey of coordinatorPaneKeys) {
+      if (paneKey === worker.paneKey) {
+        continue
+      }
+      const hold = holds.get(paneKey)
+      holds.set(paneKey, {
+        unsettled: hold?.unsettled === true || hasUnsettledOrUnknownDispatch(worker),
+        lastWorkerStateStartedAt: Math.max(hold?.lastWorkerStateStartedAt ?? 0, stateStartedAt)
+      })
+    }
+  }
+  return holds
+}
+
 export function planAgentHibernationCandidates(
   snapshot: AgentHibernationPlannerSnapshot
 ): AgentHibernationCandidate[] {
@@ -109,6 +165,7 @@ export function planAgentHibernationCandidates(
     snapshot.runtimeLivenessRequiredWorktreeIds ?? []
   )
   const agentEntriesByTabId = getAgentEntriesByTabId(snapshot.agentStatusByPaneKey)
+  const coordinatorHold = getCoordinatorHold(snapshot.agentStatusByPaneKey)
   const candidates: AgentHibernationCandidate[] = []
   for (const [worktreeId, tabs] of Object.entries(snapshot.tabsByWorktree)) {
     // Protect the foreground tab and recently left tabs individually; excluding the entire active worktree prevents reclaim there (#16211).
@@ -142,6 +199,7 @@ export function planAgentHibernationCandidates(
       for (const entry of agentEntriesByTabId.get(tab.id) ?? []) {
         const eligible = getEligiblePane({
           entry,
+          coordinatorHold,
           tab,
           layout,
           livePtyIds: new Set(tabLivePtyIds),

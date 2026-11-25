@@ -48,13 +48,18 @@ function getPaneLivePtyId(
 }
 
 // Why: provider done hooks can fire mid-Dispatch; only runtime-confirmed settlement makes sleep safe.
-const hasUnsettledOrUnknownDispatch = ({ orchestration }: AgentStatusEntry): boolean =>
+export const hasUnsettledOrUnknownDispatch = ({ orchestration }: AgentStatusEntry): boolean =>
   orchestration
     ? !['completed', 'failed', 'circuit_broken'].includes(orchestration.dispatchStatus ?? '')
     : false
 
+/** What the workers that name a pane as their parent say about that pane (see the planner). */
+export type CoordinatorHold = { unsettled: boolean; lastWorkerStateStartedAt: number }
+
 export function getEligiblePane(args: {
   entry: AgentStatusEntry
+  // Why: a coordinator must not sleep while a worker it dispatched can still report back to it.
+  coordinatorHold: Map<string, CoordinatorHold>
   tab: TerminalTab
   layout: TerminalLayoutSnapshot | undefined
   livePtyIds: Set<string>
@@ -91,6 +96,7 @@ export function getEligiblePane(args: {
     agentTurnEndedUncleanly(entry) ||
     Boolean(entry.subagents?.length) ||
     hasUnsettledOrUnknownDispatch(entry) ||
+    args.coordinatorHold.get(entry.paneKey)?.unsettled === true ||
     (sleepingRecord && !hasOnlyLiveResumeAnchor)
   ) {
     return null
@@ -112,7 +118,9 @@ export function getEligiblePane(args: {
     entry.stateStartedAt,
     foregroundTerminalLastSeenAtByTabId[tab.id],
     ptyBindingFirstSeenAtByPaneKey[entry.paneKey],
-    boundaryResolvedAtByPaneKey[entry.paneKey]
+    boundaryResolvedAtByPaneKey[entry.paneKey],
+    // A coordinator becomes a candidate one idle window after its last worker settled.
+    args.coordinatorHold.get(entry.paneKey)?.lastWorkerStateStartedAt
   ]
   const effectiveIdleStart = Math.max(
     ...floors.map((value) => (typeof value === 'number' && Number.isFinite(value) ? value : 0))
