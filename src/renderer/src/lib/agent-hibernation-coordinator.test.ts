@@ -215,6 +215,31 @@ describe('agent sleep coordinator', () => {
     expect(shutdown).not.toHaveBeenCalled()
   })
 
+  it('does not hibernate a coordinator while a worker dispatch is open', async () => {
+    vi.useFakeTimers()
+    const coordinator = entry()
+    const worker = {
+      ...entry(),
+      paneKey: 'tab-2:22222222-2222-4222-8222-222222222222',
+      tabId: 'tab-2',
+      orchestration: {
+        taskId: 'task-1',
+        dispatchId: 'ctx-1',
+        dispatchStatus: 'dispatched' as const,
+        parentPaneKey: coordinator.paneKey
+      }
+    }
+    const shutdown = installEligibleState(vi.fn().mockResolvedValue(undefined), {
+      agentStatusByPaneKey: { [coordinator.paneKey]: coordinator, [worker.paneKey]: worker }
+    })
+    startAgentHibernationCoordinator({ intervalMs: 1000, now: () => NOW })
+
+    await vi.advanceTimersByTimeAsync(1000)
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(shutdown).not.toHaveBeenCalled()
+  })
+
   it('restarts confirmation when a foreground terminal visit refreshes idle state', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(NOW)
