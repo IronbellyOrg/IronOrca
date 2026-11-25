@@ -11,9 +11,10 @@ describe('normalizeAgentHibernationDefaultOn', () => {
   })
 
   it('treats a saved false without the marker as the old default and converts it', () => {
-    expect(
-      normalizeAgentHibernationDefaultOn({ experimentalAgentHibernation: false })
-    ).toEqual({ experimentalAgentHibernation: true, agentHibernationDefaultedOn: true })
+    expect(normalizeAgentHibernationDefaultOn({ experimentalAgentHibernation: false })).toEqual({
+      experimentalAgentHibernation: true,
+      agentHibernationDefaultedOn: true
+    })
   })
 
   it('keeps a saved true without the marker on and adds the marker', () => {
