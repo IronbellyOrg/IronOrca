@@ -1,5 +1,6 @@
 import { isAgentChatPermissionMode } from '../../../../shared/agent-chat-permission-mode'
 import { normalizeNativeChatAppearanceSettings } from '../../../../shared/native-chat/native-chat-appearance-settings'
+import { normalizeAgentHibernationDefaultOn } from '../../../../shared/agent-hibernation-settings'
 import { normalizeAutoRenameBranchFromWorkDefaultOn } from '../../../../shared/auto-rename-branch-from-work-settings'
 import {
   getDefaultSettings,
@@ -154,6 +155,7 @@ export function migrateStoredWebSettings(stored: Partial<GlobalSettings>): Parti
     ...normalizeAutoRenameBranchFromWorkDefaultOn(stored),
     ...normalizeTerminalCursorStyleDefault(stored),
     ...normalizeOsc52ClipboardDefaultOn(stored),
+    ...normalizeAgentHibernationDefaultOn(stored),
     terminalCustomThemes: normalizeTerminalCustomThemes(stored.terminalCustomThemes),
     ...migratePortugueseUiLanguageOnLoad(stored)
   }

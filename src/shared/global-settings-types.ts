@@ -463,6 +463,8 @@ export type GlobalSettings = GlobalSettingsBase & {
   experimentalTerminalAttention: boolean
   /** Experimental: automatically sleep completed, resumable background agent terminals. */
   experimentalAgentHibernation?: boolean
+  /** One-shot guard for the default-on rollout of Agent sleep: a saved false from the old default flips on once; a later explicit false sticks. */
+  agentHibernationDefaultedOn?: boolean
   /** Milliseconds a completed agent must stay idle before hibernation can be considered. */
   agentHibernationIdleMs?: number
   /** Experimental: opt-in preview of the updated worktree-card layout and metadata behavior. */

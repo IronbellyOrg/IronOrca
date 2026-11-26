@@ -285,7 +285,10 @@ export function buildDefaultSettings(args: {
     experimentalActivity: false,
     experimentalActivityDefaultedOffForAllUsers: true,
     experimentalTerminalAttention: true,
-    experimentalAgentHibernation: false,
+    // Why: Agent sleep ships on for new profiles; the marker keeps the one-time conversion of a saved
+    // false (the old default) from running again on a profile that already has the new default.
+    experimentalAgentHibernation: true,
+    agentHibernationDefaultedOn: true,
     agentHibernationIdleMs: 30 * 60 * 1000,
     experimentalNewWorktreeCardStyle: true,
     experimentalAgentDashboardPopout: true,

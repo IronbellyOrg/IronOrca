@@ -5,6 +5,7 @@ import { deriveGlobalWindowsRuntimeDefaultFromLegacySettings } from '../../../sh
 import { normalizeTaskProviderSettings } from '../../../shared/task-providers'
 import { normalizeAutoRenameBranchFromWorkDefaultOn } from '../../../shared/auto-rename-branch-from-work-settings'
 import { normalizePluginSystemEnabledDefaultOn } from '../../../shared/plugins/plugin-system-settings'
+import { normalizeAgentHibernationDefaultOn } from '../../../shared/agent-hibernation-settings'
 import { migrateNestedWorkerMaxDepthDefault } from '../../../shared/nested-worker-depth'
 import {
   addMobilePairingCustomAddress,
@@ -38,6 +39,7 @@ export type PreparedLoadedProfileSettings = {
     'autoRenameBranchFromWork' | 'autoRenameBranchFromWorkDefaultedOn'
   >
   migratedPluginSystemEnabled: ReturnType<typeof normalizePluginSystemEnabledDefaultOn>
+  migratedAgentHibernation: ReturnType<typeof normalizeAgentHibernationDefaultOn>
   migratedNestedWorkerMaxDepth: ReturnType<typeof migrateNestedWorkerMaxDepthDefault>
   migratedTerminalCursorStyle: Pick<
     GlobalSettings,
@@ -93,6 +95,10 @@ export function prepareLoadedProfileSettings(
   )
   const migratedPluginSystemEnabled = normalizePluginSystemEnabledDefaultOn(parsed.settings)
   if (parsed.settings?.pluginSystemDefaultedOn !== true) {
+    markNeedsSave()
+  }
+  const migratedAgentHibernation = normalizeAgentHibernationDefaultOn(parsed.settings)
+  if (parsed.settings?.agentHibernationDefaultedOn !== true) {
     markNeedsSave()
   }
   const migratedNestedWorkerMaxDepth = migrateNestedWorkerMaxDepthDefault(parsed.settings)
@@ -271,6 +277,7 @@ export function prepareLoadedProfileSettings(
     migratedExperimentalActivity,
     migratedAutoRenameBranchFromWork,
     migratedPluginSystemEnabled,
+    migratedAgentHibernation,
     migratedNestedWorkerMaxDepth,
     migratedTerminalCursorStyle,
     migratedTerminalLineHeight,

@@ -48,6 +48,8 @@ export function getStoredSettings(): GlobalSettings {
       stored.terminalAllowOsc52Clipboard !== migratedStored.terminalAllowOsc52Clipboard ||
       stored.terminalAllowOsc52ClipboardDefaultedOnForAllUsers !==
         migratedStored.terminalAllowOsc52ClipboardDefaultedOnForAllUsers ||
+      stored.experimentalAgentHibernation !== migratedStored.experimentalAgentHibernation ||
+      stored.agentHibernationDefaultedOn !== migratedStored.agentHibernationDefaultedOn ||
       stored.terminalCustomThemes !== migratedStored.terminalCustomThemes ||
       stored.uiLanguage !== migratedStored.uiLanguage ||
       stored.uiLanguagePortugueseMigrationApplied !== true)

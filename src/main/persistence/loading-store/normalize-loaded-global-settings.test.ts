@@ -334,6 +334,36 @@ describe('terminal default shell', () => {
   })
 })
 
+describe('Agent sleep default-on upgrade', () => {
+  it('turns on a saved false that has no marker and stamps the marker', () => {
+    const normalized = normalizeLegacyProfile({
+      experimentalAgentHibernation: false,
+      agentHibernationDefaultedOn: undefined
+    })
+    expect(normalized.experimentalAgentHibernation).toBe(true)
+    expect(normalized.agentHibernationDefaultedOn).toBe(true)
+  })
+
+  it('keeps a saved false once the marker is set', () => {
+    const normalized = normalizeLegacyProfile({
+      experimentalAgentHibernation: false,
+      agentHibernationDefaultedOn: true
+    })
+    expect(normalized.experimentalAgentHibernation).toBe(false)
+    expect(normalized.agentHibernationDefaultedOn).toBe(true)
+  })
+
+  it('keeps a stored idle window through the conversion', () => {
+    const normalized = normalizeLegacyProfile({
+      experimentalAgentHibernation: false,
+      agentHibernationDefaultedOn: undefined,
+      agentHibernationIdleMs: 3_600_000
+    })
+    expect(normalized.experimentalAgentHibernation).toBe(true)
+    expect(normalized.agentHibernationIdleMs).toBe(3_600_000)
+  })
+})
+
 it('loads an existing profile without a terminal policy mirror and preserves its saved preferences', () => {
   const loaded = normalizeLegacyProfile({
     terminalFocusFollowsMouse: true,

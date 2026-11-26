@@ -30,6 +30,10 @@ describe('getDefaultSettings', () => {
       experimentalNativeChat: true,
       experimentalTerminalAttention: true,
       experimentalNewWorktreeCardStyle: true,
+      // Agent sleep is on by default with a 30 minute idle window and the one-time conversion marker.
+      experimentalAgentHibernation: true,
+      agentHibernationIdleMs: 1_800_000,
+      agentHibernationDefaultedOn: true,
       // New agent tabs still open in the terminal while Chat UI is on (upstream #22933 retired
       // openAgentTabsInChatByDefault; the per-agent choices carry the same result).
       nativeChatProviders: {
